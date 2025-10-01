@@ -13,28 +13,39 @@
     padding: 10px;
   }
   #field {
-    width: 320px;
-    height: 320px;
-    background: linear-gradient(to bottom right, #a0522d 50%, #228B22 50%);
+    width: 360px;
+    height: 360px;
     position: relative;
     margin-bottom: 20px;
+    background-color: #228B22; /* grass */
+    border-radius: 10px;
+  }
+  /* Infield diamond */
+  #infield {
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    background-color: #a0522d;
+    top: 90px;
+    left: 90px;
+    transform: rotate(45deg);
     border-radius: 5px;
   }
   .slot {
     width: 60px;
     height: 30px;
-    background: rgba(255,255,255,0.8);
-    position: absolute;
+    background: rgba(255,255,255,0.9);
     text-align: center;
     line-height: 30px;
     border-radius: 4px;
     font-size: 12px;
+    position: absolute;
     touch-action: none;
   }
   #players {
     display: flex;
     flex-wrap: wrap;
-    width: 320px;
+    width: 360px;
     margin-bottom: 20px;
   }
   .player {
@@ -51,7 +62,7 @@
   }
   table {
     border-collapse: collapse;
-    width: 320px;
+    width: 360px;
   }
   th, td {
     border: 1px solid #000;
@@ -66,15 +77,18 @@
 <h2>Softball Positions for Ctrl+Alt+Defeats</h2>
 
 <div id="field">
-  <div class="slot" data-pos="1B" style="bottom:10px; right:10px;">1B</div>
-  <div class="slot" data-pos="2B" style="bottom:50px; left:50%; transform:translateX(-50%);">2B</div>
-  <div class="slot" data-pos="3B" style="bottom:10px; left:10px;">3B</div>
-  <div class="slot" data-pos="SS" style="bottom:35px; left:25%;">SS</div>
-  <div class="slot" data-pos="LF" style="top:10px; left:10px;">LF</div>
-  <div class="slot" data-pos="CF" style="top:10px; left:50%; transform:translateX(-50%);">CF</div>
-  <div class="slot" data-pos="RF" style="top:10px; right:10px;">RF</div>
-  <div class="slot" data-pos="P" style="bottom:150px; left:50%; transform:translateX(-50%);">P</div>
+  <div id="infield"></div>
+  <!-- Infield positions -->
+  <div class="slot" data-pos="1B" style="bottom:50px; right:50px;">1B</div>
+  <div class="slot" data-pos="2B" style="top:50px; left:50%; transform:translateX(-50%);">2B</div>
+  <div class="slot" data-pos="3B" style="bottom:50px; left:50px;">3B</div>
+  <div class="slot" data-pos="SS" style="bottom:80px; left:35%;">SS</div>
+  <div class="slot" data-pos="P" style="top:50%; left:50%; transform:translate(-50%,50%);">P</div>
   <div class="slot" data-pos="C" style="bottom:10px; left:50%; transform:translateX(-50%);">C</div>
+  <!-- Outfield positions -->
+  <div class="slot" data-pos="LF" style="top:20px; left:40px;">LF</div>
+  <div class="slot" data-pos="CF" style="top:0px; left:50%; transform:translateX(-50%);">CF</div>
+  <div class="slot" data-pos="RF" style="top:20px; right:40px;">RF</div>
 </div>
 
 <div id="players">
@@ -104,24 +118,19 @@
 let dragged = null;
 const playersContainer = document.getElementById('players');
 
-// Desktop drag
 document.querySelectorAll('.player').forEach(player => {
   player.addEventListener('dragstart', e => { dragged = e.target; });
-  // Mobile touch
   player.addEventListener('touchstart', e => { dragged = e.target; });
 });
 
 document.querySelectorAll('.slot').forEach(slot => {
-  // Desktop drop
+  slot.addEventListener('dragover', e => e.preventDefault());
   slot.addEventListener('drop', e => {
     e.preventDefault();
     if(dragged) slot.appendChild(dragged);
     dragged = null;
     updateUnusedTable();
   });
-  slot.addEventListener('dragover', e => e.preventDefault());
-
-  // Mobile drop
   slot.addEventListener('touchend', e => {
     e.preventDefault();
     if(dragged) slot.appendChild(dragged);
