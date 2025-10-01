@@ -3,138 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Softball Positions for Ctrl+Alt+Defeats</title>
+<title>Softball Positions Editor</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 10px;
-  }
-
-  #field {
-    width: 360px;
-    height: 360px;
-    position: relative;
-    margin-bottom: 20px;
-    background-color: #228B22; /* grass */
-    border-radius: 10px;
-  }
-
-  /* Slightly smaller infield diamond */
-  #infield {
-    position: absolute;
-    width: 140px;
-    height: 140px;
-    background-color: #a0522d; /* dirt */
-    top: 110px;
-    left: 110px;
-    transform: rotate(45deg);
-    border-radius: 5px;
-  }
-
-  /* Base markers */
-  .base {
-    position: absolute;
-    width: 12px;
-    height: 12px;
-    background-color: white;
-    transform: translate(-50%, -50%);
-    border-radius: 2px;
-  }
-
-  /* Position indicators */
-  .slot {
-    width: 25px;
-    height: 25px;
-    background-color: #fff;
-    border-radius: 50%;
-    text-align: center;
-    line-height: 25px;
-    font-size: 10px;
-    position: absolute;
-    touch-action: none;
-    border: 2px solid #000;
-    color: #000;
-    font-weight: bold;
-  }
-
-  /* Buckets */
-  .bucket {
-    width: 360px;
-    min-height: 40px;
-    margin-bottom: 20px;
-    padding: 5px;
-    border: 2px dashed #000;
-    border-radius: 5px;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-
-  .bucket-title {
-    width: 100%;
-    font-weight: bold;
-    margin-bottom: 5px;
-  }
-
-  .player {
-    width: 80px;
-    height: 30px;
-    background: #87cefa;
-    margin: 2px;
-    text-align: center;
-    line-height: 30px;
-    border-radius: 4px;
-    font-size: 12px;
-    touch-action: none;
-    cursor: grab;
-    position: relative;
-  }
-
-  /* Keep player names visible on field with slot */
-  .slot .player {
-    font-size: 10px;
-    width: 60px;
-    height: 20px;
-    line-height: 20px;
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%) translateY(2px);
-    background: #87cefa;
-    border-radius: 4px;
-    text-align: center;
-  }
-
-  table {
-    border-collapse: collapse;
-    width: 360px;
-  }
-
-  th, td {
-    border: 1px solid #000;
-    text-align: left;
-    padding: 4px;
-    font-size: 12px;
-  }
+  body { font-family: Arial; display:flex; flex-direction:column; align-items:center; padding:10px; }
+  #field { width:360px; height:360px; position:relative; background:#228B22; border-radius:10px; margin-bottom:20px;}
+  #infield { position:absolute; width:140px; height:140px; background:#a0522d; top:110px; left:110px; transform:rotate(45deg); border-radius:5px;}
+  .base { position:absolute; width:12px; height:12px; background:white; transform:translate(-50%,-50%); border-radius:2px; }
+  .slot { width:25px; height:25px; background:white; border-radius:50%; text-align:center; line-height:25px; font-size:10px; position:absolute; border:2px solid #000; font-weight:bold; color:#000; }
+  .bucket { width:360px; min-height:40px; margin-bottom:20px; padding:5px; border:2px dashed #000; border-radius:5px; display:flex; flex-wrap:wrap; align-items:center; }
+  .bucket-title { width:100%; font-weight:bold; margin-bottom:5px; }
+  .player { width:80px; height:30px; background:#87cefa; margin:2px; text-align:center; line-height:30px; border-radius:4px; font-size:12px; cursor:grab; position:relative; }
+  .slot .player { font-size:10px; width:60px; height:20px; line-height:20px; position:absolute; top:100%; left:50%; transform:translateX(-50%) translateY(2px); background:#87cefa; border-radius:4px; text-align:center; }
 </style>
 </head>
 <body>
-
-<h2>Softball Positions for Ctrl+Alt+Defeats</h2>
-
+<h2>Softball Positions Editor</h2>
 <div id="field">
   <div id="infield"></div>
-
-  <!-- Base markers -->
   <div class="base" style="bottom:50px; left:50px;"></div> <!-- 3B -->
   <div class="base" style="bottom:50px; right:50px;"></div> <!-- 1B -->
   <div class="base" style="top:50px; left:50%; transform:translateX(-50%);"></div> <!-- 2B -->
   <div class="base" style="bottom:10px; left:50%; transform:translateX(-50%);"></div> <!-- Home -->
-
-  <!-- Position indicators -->
   <div class="slot" data-pos="1B" style="bottom:50px; right:50px;">1B</div>
   <div class="slot" data-pos="2B" style="top:50px; left:50%; transform:translateX(-50%);">2B</div>
   <div class="slot" data-pos="3B" style="bottom:50px; left:50px;">3B</div>
@@ -145,151 +34,25 @@
   <div class="slot" data-pos="CF" style="top:0px; left:50%; transform:translateX(-50%);">CF</div>
   <div class="slot" data-pos="RF" style="top:20px; right:40px;">RF</div>
 </div>
-
-<!-- Outfield Bucket -->
-<div class="bucket" id="outfield" ondragover="event.preventDefault()" ondrop="dropToBucket(event,'outfield')">
-  <div class="bucket-title">Outfield</div>
-  <div class="player">Corbin</div>
-  <div class="player">Danielle</div>
-  <div class="player">Marcus</div>
-  <div class="player">Natalie</div>
-  <div class="player">Russell</div>
-  <div class="player">Vamsi</div>
-  <div class="player">Brianna</div>
-  <div class="player">Charles</div>
-  <div class="player">Matt Johnson</div>
-  <div class="player">Ellison</div>
-  <div class="player">Lauren</div>
-  <div class="player">Taylor</div>
-</div>
-
-<!-- Sub for the Inning -->
-<div class="bucket" id="sub" ondragover="event.preventDefault()" ondrop="dropToBucket(event,'sub')">
-  <div class="bucket-title">Sub for the Inning</div>
-</div>
+<div class="bucket" id="outfield"><div class="bucket-title">Outfield</div></div>
+<div class="bucket" id="sub"><div class="bucket-title">Sub for the Inning</div></div>
 
 <script>
-let dragged = null;
-let offsetX = 0;
-let offsetY = 0;
+const canEdit = true; // Editor mode
+let positions = {}; // Will load from JSON
 
-// Make player draggable
-function makeDraggable(player) {
-  player.addEventListener('mousedown', startDrag);
-  player.addEventListener('touchstart', startDrag, {passive:false});
+// Load positions.json
+async function loadPositions() {
+  const res = await fetch('positions.json');
+  positions = await res.json();
+  renderField();
 }
 
-// Start dragging
-function startDrag(e) {
-  e.preventDefault();
-  dragged = e.target;
-  const rect = dragged.getBoundingClientRect();
-  if(e.touches) {
-    offsetX = e.touches[0].clientX - rect.left;
-    offsetY = e.touches[0].clientY - rect.top;
-  } else {
-    offsetX = e.offsetX;
-    offsetY = e.offsetY;
-  }
-
-  dragged.style.position = 'absolute';
-  dragged.style.zIndex = 1000;
-  moveAt(e);
-
-  document.addEventListener('mousemove', moveAt);
-  document.addEventListener('mouseup', drop);
-  document.addEventListener('touchmove', moveAt, {passive:false});
-  document.addEventListener('touchend', drop);
-}
-
-// Move player with cursor/finger
-function moveAt(e) {
-  if(!dragged) return;
-  e.preventDefault();
-  let clientX, clientY;
-  if(e.touches) {
-    clientX = e.touches[0].clientX;
-    clientY = e.touches[0].clientY;
-  } else {
-    clientX = e.clientX;
-    clientY = e.clientY;
-  }
-  dragged.style.left = (clientX - offsetX) + 'px';
-  dragged.style.top = (clientY - offsetY) + 'px';
-}
-
-// Drop player
-function drop(e) {
-  if(!dragged) return;
-  const slots = document.querySelectorAll('.slot');
-  let dropped = false;
-
-  slots.forEach(slot => {
-    const rect = slot.getBoundingClientRect();
-    const pRect = dragged.getBoundingClientRect();
-    if(!(pRect.right < rect.left || pRect.left > rect.right ||
-         pRect.bottom < rect.top || pRect.top > rect.bottom)) {
-      slot.appendChild(dragged);
-      dragged.style.position = 'static';
-      dropped = true;
-    }
-  });
-
-  if(!dropped) {
-    // Check buckets
-    const buckets = [document.getElementById('outfield'), document.getElementById('sub')];
-    buckets.forEach(bucket => {
-      const rect = bucket.getBoundingClientRect();
-      const pRect = dragged.getBoundingClientRect();
-      if(!(pRect.right < rect.left || pRect.left > rect.right ||
-           pRect.bottom < rect.top || pRect.top > rect.bottom)) {
-        bucket.appendChild(dragged);
-        dragged.style.position = 'static';
-        dropped = true;
-      }
-    });
-  }
-
-  // If still not dropped, send back to outfield
-  if(!dropped) {
-    document.getElementById('outfield').appendChild(dragged);
-    dragged.style.position = 'static';
-  }
-
-  dragged.style.zIndex = '';
-  dragged = null;
-
-  document.removeEventListener('mousemove', moveAt);
-  document.removeEventListener('mouseup', drop);
-  document.removeEventListener('touchmove', moveAt);
-  document.removeEventListener('touchend', drop);
-}
-
-// Drop to bucket via HTML ondrop
-function dropToBucket(e, bucketId) {
-  e.preventDefault();
-  if(dragged) {
-    document.getElementById(bucketId).appendChild(dragged);
-    dragged.style.position = 'static';
-    dragged = null;
-  }
-}
-
-// Initialize draggable players
-document.querySelectorAll('.player').forEach(makeDraggable);
-
-// Observe new players added to reapply draggable
-const observer = new MutationObserver(mutations => {
-  mutations.forEach(m => {
-    m.addedNodes.forEach(node => {
-      if(node.classList && node.classList.contains('player')) makeDraggable(node);
-    });
-  });
-});
-document.querySelectorAll('.slot, #outfield, #sub').forEach(el => 
-  observer.observe(el, {childList:true})
-);
-</script>
-
-</body>
-</html>
+// Render field
+function renderField() {
+  // Clear buckets
+  ['outfield','sub'].forEach(id=>{document.getElementById(id).querySelectorAll('.player').forEach(p=>p.remove());});
+  document.querySelectorAll('.slot').forEach(slot=>{
+    const pos = slot.dataset.pos;
+    slot.innerHTML = pos;
+    if(positio
