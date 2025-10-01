@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Softball Positions Viewer</title>
+<!-- Use same CSS as editor -->
+</head>
+<body>
+<h2>Softball Positions Viewer</h2>
+<div id="field"><!-- same field layout --></div>
+<div class="bucket" id="outfield"><div class="bucket-title">Outfield</div></div>
+<div class="bucket" id="sub"><div class="bucket-title">Sub for the Inning</div></div>
+
+<script>
+async function fetchPositions(){
+  const res=await fetch('positions.json'); const positions=await res.json(); renderField(positions);
+}
+function renderField(positions){
+  ['outfield','sub'].forEach(id=>{document.getElementById(id).querySelectorAll('.player').forEach(p=>p.remove());});
+  document.querySelectorAll('.slot').forEach(slot=>{const pos=slot.dataset.pos;slot.innerHTML=pos;if(positions[pos]){const pDiv=document.createElement('div');pDiv.classList.add('player');pDiv.textContent=positions[pos];slot.appendChild(pDiv);}});
+  positions["Outfield"].forEach(name=>{const pDiv=document.createElement('div');pDiv.classList.add('player');pDiv.textContent=name;document.getElementById('outfield').appendChild(pDiv);});
+  positions["Sub"].forEach(name=>{const pDiv=document.createElement('div');pDiv.classList.add('player');pDiv.textContent=name;document.getElementById('sub').appendChild(pDiv);});
+}
+setInterval(fetchPositions,5000); fetchPositions();
+</script>
+</body>
+</html>
