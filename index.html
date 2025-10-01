@@ -11,7 +11,7 @@ body { font-family: Arial; display:flex; flex-direction:column; align-items:cent
 .slot { width:25px; height:25px; background:white; border-radius:50%; text-align:center; line-height:25px; font-size:10px; position:absolute; border:2px solid #000; font-weight:bold; color:#000; }
 .bucket { width:360px; min-height:40px; margin-bottom:20px; padding:5px; border:2px dashed #000; border-radius:5px; display:flex; flex-wrap:wrap; align-items:center; }
 .bucket-title { width:100%; font-weight:bold; margin-bottom:5px; }
-.player { width:80px; height:30px; background:#87cefa; margin:2px; text-align:center; line-height:30px; border-radius:4px; font-size:12px; cursor:grab; }
+.player { width:80px; height:30px; background:#87cefa; margin:2px; text-align:center; line-height:30px; border-radius:4px; font-size:12px; touch-action:none; position:relative; }
 button { margin:10px; padding:8px 12px; font-size:16px; border-radius:5px; cursor:pointer; }
 </style>
 </head>
@@ -42,16 +42,10 @@ button { margin:10px; padding:8px 12px; font-size:16px; border-radius:5px; curso
 <script>
 // Players
 const allPlayers = ["Vamsi","Brianna","Marcus","Natalie","Corbin","Ellison","Charles","Matt Johnson","Danielle","Lauren","Taylor"];
-
-// Positions object
-let positions = {
-  "P": null,"C": null,"1B": null,"2B": null,
-  "3B": null,"SS": null,"LF": null,"CF": null,
-  "RF": null,"Outfield": [],"Sub": []
-};
+let positions = {"P": null,"C": null,"1B": null,"2B": null,"3B": null,"SS": null,"LF": null,"CF": null,"RF": null,"Outfield":[],"Sub":[]};
 
 // Render buckets and field
-function renderField() {
+function renderField(){
   // Clear slots
   document.querySelectorAll('.slot').forEach(slot=>{
     slot.innerHTML = slot.dataset.pos;
@@ -60,76 +54,99 @@ function renderField() {
       const p = document.createElement('div');
       p.classList.add('player');
       p.textContent=name;
-      p.setAttribute('draggable', true);
       slot.appendChild(p);
     }
   });
 
-  // Fill buckets
+  // Clear buckets
   ['roster','outfield','sub'].forEach(id=>{
-    const bucket = document.getElementById(id);
-    bucket.innerHTML = `<div class="bucket-title">${bucket.querySelector('.bucket-title').textContent}</div>`;
+    const b = document.getElementById(id);
+    b.innerHTML=`<div class="bucket-title">${b.querySelector('.bucket-title').textContent}</div>`;
   });
 
-  const assigned = Object.values(positions).filter(v=>v && typeof v === "string")
-    .concat(positions["Outfield"],positions["Sub"]);
+  const assigned = Object.values(positions).filter(v=>v && typeof v==="string").concat(positions["Outfield"],positions["Sub"]);
 
-  // Roster bucket: unassigned
+  // Roster
   allPlayers.forEach(name=>{
     if(!assigned.includes(name)){
-      const p = document.createElement('div');
-      p.classList.add('player');
-      p.textContent=name;
-      p.setAttribute('draggable', true);
+      const p = document.createElement('div'); p.classList.add('player'); p.textContent=name;
       document.getElementById('roster').appendChild(p);
     }
   });
 
   // Outfield
   positions["Outfield"].forEach(name=>{
-    const p = document.createElement('div'); p.classList.add('player'); p.textContent=name; p.setAttribute('draggable',true);
+    const p = document.createElement('div'); p.classList.add('player'); p.textContent=name;
     document.getElementById('outfield').appendChild(p);
   });
 
   // Sub
   positions["Sub"].forEach(name=>{
-    const p = document.createElement('div'); p.classList.add('player'); p.textContent=name; p.setAttribute('draggable',true);
+    const p = document.createElement('div'); p.classList.add('player'); p.textContent=name;
     document.getElementById('sub').appendChild(p);
   });
 
-  addDragDropEvents();
+  addDragEvents();
 }
 
-// Add drag-and-drop events
-function addDragDropEvents(){
-  let dragged=null;
-
+// Mobile-friendly drag
+function addDragEvents(){
   document.querySelectorAll('.player').forEach(p=>{
-    p.ondragstart = e=>{ dragged=p; e.dataTransfer.setData('text/plain',''); };
-  });
-
-  const targets = [...document.querySelectorAll('.slot'),...document.querySelectorAll('.bucket')];
-  targets.forEach(t=>{
-    t.ondragover = e=>e.preventDefault();
-    t.ondrop = e=>{
-      e.preventDefault();
-      if(!dragged) return;
-      // Remove from old bucket
-      dragged.parentNode.removeChild(dragged);
-
-      // Field slot
-      if(t.classList.contains('slot')){
-        t.appendChild(dragged);
-      } else if(t.classList.contains('bucket')){
-        t.appendChild(dragged);
-      }
-
-      updatePositionsFromDOM();
-    };
+    p.onpointerdown = startDrag;
   });
 }
 
-// Update positions object from DOM
+let dragged = null;
+let offsetX=0, offsetY=0;
+
+function startDrag(e){
+  e.preventDefault();
+  dragged = e.currentTarget;
+  const rect = dragged.getBoundingClientRect();
+  offsetX = e.clientX - rect.left;
+  offsetY = e.clientY - rect.top;
+  dragged.style.position = 'absolute';
+  dragged.style.zIndex = 1000;
+  moveAt(e.clientX, e.clientY);
+
+  document.onpointermove = moveDrag;
+  document.onpointerup = dropDrag;
+}
+
+function moveDrag(clientX, clientY){
+  dragged.style.left = (clientX - offsetX) + 'px';
+  dragged.style.top = (clientY - offsetY) + 'px';
+}
+
+function moveDrag(e){
+  moveDrag(e.clientX, e.clientY);
+}
+
+function dropDrag(e){
+  document.onpointermove = null;
+  document.onpointerup = null;
+
+  // Check drop target
+  const dropTarget = document.elementFromPoint(e.clientX, e.clientY);
+  if(dropTarget){
+    let parentBucket = dropTarget.closest('.bucket');
+    let slot = dropTarget.closest('.slot');
+
+    if(slot){ slot.appendChild(dragged); }
+    else if(parentBucket){ parentBucket.appendChild(dragged); }
+    else{ document.getElementById('roster').appendChild(dragged); }
+  }
+
+  dragged.style.position = 'relative';
+  dragged.style.left = '0px';
+  dragged.style.top = '0px';
+  dragged.style.zIndex = '';
+
+  dragged = null;
+  updatePositionsFromDOM();
+}
+
+// Update positions object
 function updatePositionsFromDOM(){
   document.querySelectorAll('.slot').forEach(slot=>{
     const p = slot.querySelector('.player');
