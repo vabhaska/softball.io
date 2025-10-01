@@ -41,7 +41,7 @@ button { margin:10px; padding:8px 12px; font-size:16px; border-radius:5px; curso
 <div class="bucket" id="outfield"><div class="bucket-title">Outfield</div></div>
 <div class="bucket" id="sub"><div class="bucket-title">Sub for the Inning</div></div>
 
-<button id="downloadBtn">Download positions.json</button>
+<button id="copyBtn">Copy positions.json to Clipboard</button>
 
 <script>
 // Initial lineup
@@ -112,7 +112,6 @@ function makeDraggable(player){
     if(!dragged) return;
     dragged.style.position='static'; dragged.style.zIndex='';
     dragged=null;
-    // Update positions object when player is dropped back to slot or bucket
     updatePositionsFromDOM();
   }
 }
@@ -127,14 +126,12 @@ function updatePositionsFromDOM(){
   positions["Sub"] = Array.from(document.getElementById('sub').children).filter(c=>c.classList.contains('player')).map(c=>c.textContent);
 }
 
-// Download positions.json
-document.getElementById('downloadBtn').addEventListener('click',()=>{
+// Copy positions.json to clipboard
+document.getElementById('copyBtn').addEventListener('click',()=>{
   updatePositionsFromDOM();
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(positions, null, 2));
-  const dlAnchor = document.createElement('a');
-  dlAnchor.setAttribute("href", dataStr);
-  dlAnchor.setAttribute("download", "positions.json");
-  dlAnchor.click();
+  navigator.clipboard.writeText(JSON.stringify(positions,null,2))
+    .then(()=>alert('Lineup copied! Paste it into GitHub.'))
+    .catch(()=>alert('Failed to copy. Try again.'));
 });
 
 renderField();
