@@ -44,7 +44,7 @@
     border-radius: 2px;
   }
 
-  /* Position indicators as small circles with label */
+  /* Position indicators */
   .slot {
     width: 25px;
     height: 25px;
@@ -65,6 +65,10 @@
     flex-wrap: wrap;
     width: 360px;
     margin-bottom: 20px;
+    min-height: 40px;
+    padding: 5px;
+    border: 2px dashed #000;
+    border-radius: 5px;
   }
 
   .player {
@@ -134,7 +138,8 @@
   <div class="slot" data-pos="RF" style="top:20px; right:40px;">RF</div>
 </div>
 
-<div id="players">
+<h3>Unused Players</h3>
+<div id="players" ondragover="event.preventDefault()" ondrop="dropToPool(event)">
   <div class="player" draggable="true">Corbin</div>
   <div class="player" draggable="true">Danielle</div>
   <div class="player" draggable="true">Marcus</div>
@@ -149,7 +154,6 @@
   <div class="player" draggable="true">Taylor</div>
 </div>
 
-<h3>Unused Players</h3>
 <table>
   <thead>
     <tr><th>Players</th></tr>
@@ -171,10 +175,7 @@ document.querySelectorAll('.slot').forEach(slot => {
   slot.addEventListener('dragover', e => e.preventDefault());
   slot.addEventListener('drop', e => {
     e.preventDefault();
-    if(dragged) {
-      // Append player inside slot but allow name to be visible
-      slot.appendChild(dragged);
-    }
+    if(dragged) slot.appendChild(dragged);
     dragged = null;
     updateUnusedTable();
   });
@@ -186,13 +187,29 @@ document.querySelectorAll('.slot').forEach(slot => {
   });
 });
 
+// Drop back to players pool
+function dropToPool(e) {
+  e.preventDefault();
+  if (dragged) {
+    document.getElementById('players').appendChild(dragged);
+    dragged.style.position = 'static';
+    dragged.style.top = '';
+    dragged.style.left = '';
+    dragged = null;
+    updateUnusedTable();
+  }
+}
+
+// Update unused players table
 function updateUnusedTable() {
-  const allPlayers = Array.from(document.querySelectorAll('.player')).map(p=>p.textContent);
-  const usedPlayers = Array.from(document.querySelectorAll('.slot .player')).map(p=>p.textContent);
-  const unused = allPlayers.filter(p=>!usedPlayers.includes(p));
+  const allPlayers = Array.from(document.querySelectorAll('#players .player, .slot .player'))
+    .map(p => p.textContent);
+  const usedPlayers = Array.from(document.querySelectorAll('.slot .player'))
+    .map(p => p.textContent);
+  const unused = allPlayers.filter(p => !usedPlayers.includes(p));
   const tbody = document.getElementById('unusedPlayers');
   tbody.innerHTML = '';
-  unused.forEach(name=>{
+  unused.forEach(name => {
     const tr = document.createElement('tr');
     const td = document.createElement('td');
     td.textContent = name;
@@ -201,7 +218,7 @@ function updateUnusedTable() {
   });
 }
 
-// Initialize unused players
+// Initialize
 updateUnusedTable();
 </script>
 
