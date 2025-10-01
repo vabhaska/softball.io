@@ -22,7 +22,7 @@
     border-radius: 10px;
   }
 
-  /* Smaller infield diamond */
+  /* Slightly smaller infield diamond */
   #infield {
     position: absolute;
     width: 140px;
@@ -60,15 +60,23 @@
     font-weight: bold;
   }
 
-  #players {
-    display: flex;
-    flex-wrap: wrap;
+  /* Buckets */
+  .bucket {
     width: 360px;
-    margin-bottom: 20px;
     min-height: 40px;
+    margin-bottom: 20px;
     padding: 5px;
     border: 2px dashed #000;
     border-radius: 5px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .bucket-title {
+    width: 100%;
+    font-weight: bold;
+    margin-bottom: 5px;
   }
 
   .player {
@@ -138,8 +146,9 @@
   <div class="slot" data-pos="RF" style="top:20px; right:40px;">RF</div>
 </div>
 
-<h3>Unused Players</h3>
-<div id="players">
+<!-- Outfield Bucket -->
+<div class="bucket" id="outfield" ondragover="event.preventDefault()" ondrop="dropToBucket(event,'outfield')">
+  <div class="bucket-title">Outfield</div>
   <div class="player">Corbin</div>
   <div class="player">Danielle</div>
   <div class="player">Marcus</div>
@@ -154,19 +163,17 @@
   <div class="player">Taylor</div>
 </div>
 
-<table>
-  <thead>
-    <tr><th>Players</th></tr>
-  </thead>
-  <tbody id="unusedPlayers"></tbody>
-</table>
+<!-- Sub for the Inning -->
+<div class="bucket" id="sub" ondragover="event.preventDefault()" ondrop="dropToBucket(event,'sub')">
+  <div class="bucket-title">Sub for the Inning</div>
+</div>
 
 <script>
 let dragged = null;
 let offsetX = 0;
 let offsetY = 0;
 
-// Make player draggable for desktop and mobile
+// Make player draggable
 function makeDraggable(player) {
   player.addEventListener('mousedown', startDrag);
   player.addEventListener('touchstart', startDrag, {passive:false});
@@ -229,13 +236,28 @@ function drop(e) {
   });
 
   if(!dropped) {
-    document.getElementById('players').appendChild(dragged);
+    // Check buckets
+    const buckets = [document.getElementById('outfield'), document.getElementById('sub')];
+    buckets.forEach(bucket => {
+      const rect = bucket.getBoundingClientRect();
+      const pRect = dragged.getBoundingClientRect();
+      if(!(pRect.right < rect.left || pRect.left > rect.right ||
+           pRect.bottom < rect.top || pRect.top > rect.bottom)) {
+        bucket.appendChild(dragged);
+        dragged.style.position = 'static';
+        dropped = true;
+      }
+    });
+  }
+
+  // If still not dropped, send back to outfield
+  if(!dropped) {
+    document.getElementById('outfield').appendChild(dragged);
     dragged.style.position = 'static';
   }
 
   dragged.style.zIndex = '';
   dragged = null;
-  updateUnusedTable();
 
   document.removeEventListener('mousemove', moveAt);
   document.removeEventListener('mouseup', drop);
@@ -243,22 +265,14 @@ function drop(e) {
   document.removeEventListener('touchend', drop);
 }
 
-// Update unused players table
-function updateUnusedTable() {
-  const allPlayers = Array.from(document.querySelectorAll('#players .player, .slot .player'))
-    .map(p => p.textContent);
-  const usedPlayers = Array.from(document.querySelectorAll('.slot .player'))
-    .map(p => p.textContent);
-  const unused = allPlayers.filter(p => !usedPlayers.includes(p));
-  const tbody = document.getElementById('unusedPlayers');
-  tbody.innerHTML = '';
-  unused.forEach(name => {
-    const tr = document.createElement('tr');
-    const td = document.createElement('td');
-    td.textContent = name;
-    tr.appendChild(td);
-    tbody.appendChild(tr);
-  });
+// Drop to bucket via HTML ondrop
+function dropToBucket(e, bucketId) {
+  e.preventDefault();
+  if(dragged) {
+    document.getElementById(bucketId).appendChild(dragged);
+    dragged.style.position = 'static';
+    dragged = null;
+  }
 }
 
 // Initialize draggable players
@@ -272,12 +286,9 @@ const observer = new MutationObserver(mutations => {
     });
   });
 });
-document.querySelectorAll('.slot, #players').forEach(el => 
+document.querySelectorAll('.slot, #outfield, #sub').forEach(el => 
   observer.observe(el, {childList:true})
 );
-
-// Initialize table
-updateUnusedTable();
 </script>
 
 </body>
