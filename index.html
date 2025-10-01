@@ -22,14 +22,14 @@
     border-radius: 10px;
   }
 
-  /* Infield diamond */
+  /* Smaller infield diamond */
   #infield {
     position: absolute;
-    width: 180px;
-    height: 180px;
+    width: 140px;
+    height: 140px;
     background-color: #a0522d; /* dirt */
-    top: 90px;
-    left: 90px;
+    top: 110px;
+    left: 110px;
     transform: rotate(45deg);
     border-radius: 5px;
   }
@@ -82,6 +82,7 @@
     font-size: 12px;
     touch-action: none;
     cursor: grab;
+    position: relative;
   }
 
   /* Keep player names visible on field with slot */
@@ -138,7 +139,7 @@
 </div>
 
 <h3>Unused Players</h3>
-<div id="players" ondragover="event.preventDefault()" ondrop="dropToPool(event)">
+<div id="players">
   <div class="player">Corbin</div>
   <div class="player">Danielle</div>
   <div class="player">Marcus</div>
@@ -162,45 +163,84 @@
 
 <script>
 let dragged = null;
+let offsetX = 0;
+let offsetY = 0;
 
-// Function to make player draggable
+// Make player draggable for desktop and mobile
 function makeDraggable(player) {
-  player.setAttribute('draggable', true);
-  player.addEventListener('dragstart', e => { dragged = e.target; });
-  player.addEventListener('touchstart', e => { dragged = e.target; });
+  player.addEventListener('mousedown', startDrag);
+  player.addEventListener('touchstart', startDrag, {passive:false});
 }
 
-// Initialize draggable players
-document.querySelectorAll('.player').forEach(makeDraggable);
-
-// Drop on slots
-document.querySelectorAll('.slot').forEach(slot => {
-  slot.addEventListener('dragover', e => e.preventDefault());
-  slot.addEventListener('drop', e => {
-    e.preventDefault();
-    if(dragged) slot.appendChild(dragged);
-    dragged = null;
-    updateUnusedTable();
-  });
-  slot.addEventListener('touchend', e => {
-    if(dragged) slot.appendChild(dragged);
-    dragged = null;
-    updateUnusedTable();
-  });
-});
-
-// Drop back to players pool
-const pool = document.getElementById('players');
-pool.addEventListener('dragover', e => e.preventDefault());
-pool.addEventListener('drop', e => dropToPool());
-pool.addEventListener('touchend', e => dropToPool());
-
-function dropToPool() {
-  if(dragged) {
-    pool.appendChild(dragged);
-    dragged = null;
-    updateUnusedTable();
+// Start dragging
+function startDrag(e) {
+  e.preventDefault();
+  dragged = e.target;
+  const rect = dragged.getBoundingClientRect();
+  if(e.touches) {
+    offsetX = e.touches[0].clientX - rect.left;
+    offsetY = e.touches[0].clientY - rect.top;
+  } else {
+    offsetX = e.offsetX;
+    offsetY = e.offsetY;
   }
+
+  dragged.style.position = 'absolute';
+  dragged.style.zIndex = 1000;
+  moveAt(e);
+
+  document.addEventListener('mousemove', moveAt);
+  document.addEventListener('mouseup', drop);
+  document.addEventListener('touchmove', moveAt, {passive:false});
+  document.addEventListener('touchend', drop);
+}
+
+// Move player with cursor/finger
+function moveAt(e) {
+  if(!dragged) return;
+  e.preventDefault();
+  let clientX, clientY;
+  if(e.touches) {
+    clientX = e.touches[0].clientX;
+    clientY = e.touches[0].clientY;
+  } else {
+    clientX = e.clientX;
+    clientY = e.clientY;
+  }
+  dragged.style.left = (clientX - offsetX) + 'px';
+  dragged.style.top = (clientY - offsetY) + 'px';
+}
+
+// Drop player
+function drop(e) {
+  if(!dragged) return;
+  const slots = document.querySelectorAll('.slot');
+  let dropped = false;
+
+  slots.forEach(slot => {
+    const rect = slot.getBoundingClientRect();
+    const pRect = dragged.getBoundingClientRect();
+    if(!(pRect.right < rect.left || pRect.left > rect.right ||
+         pRect.bottom < rect.top || pRect.top > rect.bottom)) {
+      slot.appendChild(dragged);
+      dragged.style.position = 'static';
+      dropped = true;
+    }
+  });
+
+  if(!dropped) {
+    document.getElementById('players').appendChild(dragged);
+    dragged.style.position = 'static';
+  }
+
+  dragged.style.zIndex = '';
+  dragged = null;
+  updateUnusedTable();
+
+  document.removeEventListener('mousemove', moveAt);
+  document.removeEventListener('mouseup', drop);
+  document.removeEventListener('touchmove', moveAt);
+  document.removeEventListener('touchend', drop);
 }
 
 // Update unused players table
@@ -221,13 +261,14 @@ function updateUnusedTable() {
   });
 }
 
-// Observe mutations to reapply draggable
+// Initialize draggable players
+document.querySelectorAll('.player').forEach(makeDraggable);
+
+// Observe new players added to reapply draggable
 const observer = new MutationObserver(mutations => {
   mutations.forEach(m => {
     m.addedNodes.forEach(node => {
-      if(node.classList && node.classList.contains('player')) {
-        makeDraggable(node);
-      }
+      if(node.classList && node.classList.contains('player')) makeDraggable(node);
     });
   });
 });
