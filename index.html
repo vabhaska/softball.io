@@ -20,15 +20,16 @@
     background-color: #228B22; /* grass */
     border-radius: 10px;
   }
+  /* Cone-shaped dirt infield */
   #infield {
     position: absolute;
     width: 180px;
     height: 180px;
     background-color: #a0522d;
-    top: 90px;
-    left: 90px;
-    transform: rotate(45deg);
-    border-radius: 5px;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
   }
   /* Base markers */
   .base {
@@ -39,7 +40,7 @@
     transform: translate(-50%, -50%);
     border-radius: 2px;
   }
-  /* Position indicators as circles */
+  /* Position indicators as small circles */
   .slot {
     width: 25px;
     height: 25px;
@@ -98,18 +99,18 @@
 <div id="field">
   <div id="infield"></div>
 
-  <!-- Base markers -->
-  <div class="base" style="bottom:50px; left:50px;"></div> <!-- 3B -->
+  <!-- Base markers (home, 1B, 2B, 3B) -->
+  <div class="base" style="bottom:10px; left:50%; transform:translateX(-50%);"></div> <!-- Home -->
   <div class="base" style="bottom:50px; right:50px;"></div> <!-- 1B -->
   <div class="base" style="top:50px; left:50%; transform:translateX(-50%);"></div> <!-- 2B -->
-  <div class="base" style="bottom:10px; left:50%; transform:translateX(-50%);"></div> <!-- Home -->
+  <div class="base" style="bottom:50px; left:50px;"></div> <!-- 3B -->
 
-  <!-- Position indicators (circles) -->
+  <!-- Position indicators -->
   <div class="slot" data-pos="1B" style="bottom:50px; right:50px;">1B</div>
   <div class="slot" data-pos="2B" style="top:50px; left:50%; transform:translateX(-50%);">2B</div>
   <div class="slot" data-pos="3B" style="bottom:50px; left:50px;">3B</div>
   <div class="slot" data-pos="SS" style="bottom:80px; left:35%;">SS</div>
-  <div class="slot" data-pos="P" style="top:50%; left:50%; transform:translate(-50%,50%);">P</div>
+  <div class="slot" data-pos="P" style="bottom:90px; left:50%; transform:translateX(-50%);">P</div>
   <div class="slot" data-pos="C" style="bottom:10px; left:50%; transform:translateX(-50%);">C</div>
   <div class="slot" data-pos="LF" style="top:20px; left:40px;">LF</div>
   <div class="slot" data-pos="CF" style="top:0px; left:50%; transform:translateX(-50%);">CF</div>
@@ -148,7 +149,7 @@ document.querySelectorAll('.player').forEach(player => {
   player.addEventListener('touchstart', e => { dragged = e.target; });
 });
 
-// Drop
+// Drop on slots
 document.querySelectorAll('.slot').forEach(slot => {
   slot.addEventListener('dragover', e => e.preventDefault());
   slot.addEventListener('drop', e => {
