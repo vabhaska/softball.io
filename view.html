@@ -3,26 +3,68 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Softball Positions Viewer</title>
-<!-- Use same CSS as editor -->
+<title>Softball Positions View</title>
+<style>
+body { font-family: Arial; display:flex; flex-direction:column; align-items:center; padding:10px;}
+#field { width:360px; height:360px; position:relative; background:#228B22; border-radius:10px; margin-bottom:20px;}
+#infield { position:absolute; width:140px; height:140px; background:#a0522d; top:110px; left:110px; transform:rotate(45deg); border-radius:5px;}
+.slot { width:25px; height:25px; background:white; border-radius:50%; text-align:center; line-height:25px; font-size:10px; position:absolute; border:2px solid #000; font-weight:bold; color:#000; }
+.player { font-size:12px; position:absolute; top:30px; left:50%; transform:translateX(-50%); background:#87cefa; border-radius:4px; text-align:center; padding:2px 4px; }
+.bucket-title { font-weight:bold; margin-top:10px; margin-bottom:5px; }
+.bucket { width:360px; min-height:40px; margin-bottom:20px; padding:5px; border:2px dashed #000; border-radius:5px; display:flex; flex-wrap:wrap; align-items:center; }
+</style>
 </head>
 <body>
-<h2>Softball Positions Viewer</h2>
-<div id="field"><!-- same field layout --></div>
+<h2>Softball Lineup</h2>
+
+<div id="field">
+  <div id="infield"></div>
+  <div class="slot" data-pos="1B" style="bottom:50px; right:50px;">1B</div>
+  <div class="slot" data-pos="2B" style="top:50px; left:50%; transform:translateX(-50%);">2B</div>
+  <div class="slot" data-pos="3B" style="bottom:50px; left:50px;">3B</div>
+  <div class="slot" data-pos="SS" style="bottom:80px; left:35%;">SS</div>
+  <div class="slot" data-pos="P" style="top:50%; left:50%; transform:translate(-50%,50%);">P</div>
+  <div class="slot" data-pos="C" style="bottom:10px; left:50%; transform:translateX(-50%);">C</div>
+  <div class="slot" data-pos="LF" style="top:20px; left:40px;">LF</div>
+  <div class="slot" data-pos="CF" style="top:0px; left:50%; transform:translateX(-50%);">CF</div>
+  <div class="slot" data-pos="RF" style="top:20px; right:40px;">RF</div>
+</div>
+
 <div class="bucket" id="outfield"><div class="bucket-title">Outfield</div></div>
 <div class="bucket" id="sub"><div class="bucket-title">Sub for the Inning</div></div>
 
 <script>
-async function fetchPositions(){
-  const res=await fetch('positions.json'); const positions=await res.json(); renderField(positions);
+const positionsURL = 'https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/positions.json'; // replace with your raw GitHub URL
+
+function fetchPositions(){
+  fetch(positionsURL)
+    .then(res=>res.json())
+    .then(positions=>{
+      document.querySelectorAll('.slot').forEach(slot=>{
+        slot.innerHTML = slot.dataset.pos;
+        const name = positions[slot.dataset.pos];
+        if(name){
+          const pDiv=document.createElement('div'); pDiv.classList.add('player'); pDiv.textContent=name;
+          slot.appendChild(pDiv);
+        }
+      });
+      const outDiv = document.getElementById('outfield'); outDiv.innerHTML='<div class="bucket-title">Outfield</div>';
+      positions["Outfield"].forEach(name=>{
+        const pDiv=document.createElement('div'); pDiv.classList.add('player'); pDiv.textContent=name;
+        outDiv.appendChild(pDiv);
+      });
+      const subDiv = document.getElementById('sub'); subDiv.innerHTML='<div class="bucket-title">Sub for the Inning</div>';
+      positions["Sub"].forEach(name=>{
+        const pDiv=document.createElement('div'); pDiv.classList.add('player'); pDiv.textContent=name;
+        subDiv.appendChild(pDiv);
+      });
+    })
+    .catch(err=>console.error(err));
 }
-function renderField(positions){
-  ['outfield','sub'].forEach(id=>{document.getElementById(id).querySelectorAll('.player').forEach(p=>p.remove());});
-  document.querySelectorAll('.slot').forEach(slot=>{const pos=slot.dataset.pos;slot.innerHTML=pos;if(positions[pos]){const pDiv=document.createElement('div');pDiv.classList.add('player');pDiv.textContent=positions[pos];slot.appendChild(pDiv);}});
-  positions["Outfield"].forEach(name=>{const pDiv=document.createElement('div');pDiv.classList.add('player');pDiv.textContent=name;document.getElementById('outfield').appendChild(pDiv);});
-  positions["Sub"].forEach(name=>{const pDiv=document.createElement('div');pDiv.classList.add('player');pDiv.textContent=name;document.getElementById('sub').appendChild(pDiv);});
-}
-setInterval(fetchPositions,5000); fetchPositions();
+
+// Refresh every 5 seconds
+fetchPositions();
+setInterval(fetchPositions,5000);
 </script>
 </body>
 </html>
