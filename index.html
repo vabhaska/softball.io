@@ -38,33 +38,33 @@ button { margin:10px; padding:8px 12px; font-size:16px; border-radius:5px; curso
   <div class="slot" data-pos="RF" style="top:20px; right:40px;">RF</div>
 </div>
 
+<div class="bucket" id="roster"><div class="bucket-title">Roster</div></div>
 <div class="bucket" id="outfield"><div class="bucket-title">Outfield</div></div>
 <div class="bucket" id="sub"><div class="bucket-title">Sub for the Inning</div></div>
 
 <button id="copyBtn">Copy positions.json to Clipboard</button>
+<button id="resetBtn">Reset Field</button>
 
 <script>
-// Initial lineup
-let positions = {
-  "P": null,
-  "C": null,
-  "1B": null,
-  "2B": null,
-  "3B": null,
-  "SS": null,
-  "LF": null,
-  "CF": null,
-  "RF": null,
-  "Outfield": [],
-  "Sub": []
-};
+// Player list
+const allPlayers = ["Vamsi", "Brianna", "Marcus", "Natalie", "Corbin", "Ellison", "Charles", "Matt Johnson", "Danielle", "Lauren", "Taylor"];
 
+// Initial empty positions
+let positions = {
+  "P": null, "C": null, "1B": null, "2B": null,
+  "3B": null, "SS": null, "LF": null, "CF": null,
+  "RF": null, "Outfield": [], "Sub": []
+};
 
 // Render field and buckets
 function renderField() {
-  ['outfield','sub'].forEach(id=>{
-    document.getElementById(id).querySelectorAll('.player').forEach(p=>p.remove());
+  // Clear buckets
+  ['roster','outfield','sub'].forEach(id=>{
+    const bucket=document.getElementById(id);
+    bucket.querySelectorAll('.player').forEach(p=>p.remove());
   });
+
+  // Clear slots
   document.querySelectorAll('.slot').forEach(slot=>{
     const pos = slot.dataset.pos;
     slot.innerHTML = pos;
@@ -76,11 +76,28 @@ function renderField() {
       slot.appendChild(pDiv);
     }
   });
+
+  // Fill roster with unassigned players
+  const assigned = Object.values(positions).filter(v=>typeof v==="string" && v).concat(positions["Outfield"], positions["Sub"]);
+  const rosterDiv = document.getElementById('roster');
+  allPlayers.forEach(name=>{
+    if(!assigned.includes(name)){
+      const pDiv=document.createElement('div'); pDiv.classList.add('player'); pDiv.textContent=name;
+      makeDraggable(pDiv);
+      rosterDiv.appendChild(pDiv);
+    }
+  });
+
+  // Fill outfield and sub buckets
   positions["Outfield"].forEach(name=>{
-    const pDiv=document.createElement('div');pDiv.classList.add('player');pDiv.textContent=name;makeDraggable(pDiv);document.getElementById('outfield').appendChild(pDiv);
+    const pDiv=document.createElement('div'); pDiv.classList.add('player'); pDiv.textContent=name;
+    makeDraggable(pDiv);
+    document.getElementById('outfield').appendChild(pDiv);
   });
   positions["Sub"].forEach(name=>{
-    const pDiv=document.createElement('div');pDiv.classList.add('player');pDiv.textContent=name;makeDraggable(pDiv);document.getElementById('sub').appendChild(pDiv);
+    const pDiv=document.createElement('div'); pDiv.classList.add('player'); pDiv.textContent=name;
+    makeDraggable(pDiv);
+    document.getElementById('sub').appendChild(pDiv);
   });
 }
 
@@ -114,27 +131,41 @@ function makeDraggable(player){
     dragged.style.position='static'; dragged.style.zIndex='';
     dragged=null;
     updatePositionsFromDOM();
+    renderField(); // re-render to reset position divs
   }
 }
 
-// Update positions object from current DOM
+// Update positions object from DOM
 function updatePositionsFromDOM(){
   document.querySelectorAll('.slot').forEach(slot=>{
     const p = slot.querySelector('.player');
     positions[slot.dataset.pos] = p?p.textContent:null;
   });
-  positions["Outfield"] = Array.from(document.getElementById('outfield').children).filter(c=>c.classList.contains('player')).map(c=>c.textContent);
-  positions["Sub"] = Array.from(document.getElementById('sub').children).filter(c=>c.classList.contains('player')).map(c=>c.textContent);
+  positions["Outfield"] = Array.from(document.getElementById('outfield').children)
+    .filter(c=>c.classList.contains('player')).map(c=>c.textContent);
+  positions["Sub"] = Array.from(document.getElementById('sub').children)
+    .filter(c=>c.classList.contains('player')).map(c=>c.textContent);
 }
 
-// Copy positions.json to clipboard
+// Copy to clipboard
 document.getElementById('copyBtn').addEventListener('click',()=>{
   updatePositionsFromDOM();
   navigator.clipboard.writeText(JSON.stringify(positions,null,2))
-    .then(()=>alert('Lineup copied! Paste it into GitHub.'))
-    .catch(()=>alert('Failed to copy. Try again.'));
+    .then(()=>alert('Lineup copied! Paste into GitHub positions.json'))
+    .catch(()=>alert('Failed to copy'));
 });
 
+// Reset field
+document.getElementById('resetBtn').addEventListener('click',()=>{
+  positions = {
+    "P": null, "C": null, "1B": null, "2B": null,
+    "3B": null, "SS": null, "LF": null, "CF": null,
+    "RF": null, "Outfield": [], "Sub": []
+  };
+  renderField();
+});
+
+// Initial render
 renderField();
 </script>
 </body>
