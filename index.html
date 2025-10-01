@@ -12,25 +12,39 @@
     align-items: center;
     padding: 10px;
   }
+
   #field {
     width: 360px;
     height: 360px;
     position: relative;
     margin-bottom: 20px;
-    background-color: #228B22; /* grass */
+    background-color: #228B22; /* grass outfield */
     border-radius: 10px;
   }
+
   /* Cone-shaped dirt infield */
   #infield {
     position: absolute;
     width: 180px;
     height: 180px;
-    background-color: #a0522d;
+    background-color: #a0522d; /* dirt */
     bottom: 0;
     left: 50%;
     transform: translateX(-50%);
     clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
   }
+
+  /* Pitcher's mound diamond */
+  #mound {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background-color: #d2b48c; /* lighter dirt for mound */
+    top: 120px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+  }
+
   /* Base markers */
   .base {
     position: absolute;
@@ -40,7 +54,8 @@
     transform: translate(-50%, -50%);
     border-radius: 2px;
   }
-  /* Position indicators as small circles */
+
+  /* Position indicators */
   .slot {
     width: 25px;
     height: 25px;
@@ -55,12 +70,14 @@
     color: #000;
     font-weight: bold;
   }
+
   #players {
     display: flex;
     flex-wrap: wrap;
     width: 360px;
     margin-bottom: 20px;
   }
+
   .player {
     width: 80px;
     height: 30px;
@@ -73,6 +90,7 @@
     touch-action: none;
     cursor: grab;
   }
+
   /* Smaller font when player is on field */
   .slot .player {
     font-size: 10px;
@@ -80,10 +98,12 @@
     height: 20px;
     line-height: 20px;
   }
+
   table {
     border-collapse: collapse;
     width: 360px;
   }
+
   th, td {
     border: 1px solid #000;
     text-align: left;
@@ -98,8 +118,9 @@
 
 <div id="field">
   <div id="infield"></div>
+  <div id="mound"></div>
 
-  <!-- Base markers (home, 1B, 2B, 3B) -->
+  <!-- Base markers -->
   <div class="base" style="bottom:10px; left:50%; transform:translateX(-50%);"></div> <!-- Home -->
   <div class="base" style="bottom:50px; right:50px;"></div> <!-- 1B -->
   <div class="base" style="top:50px; left:50%; transform:translateX(-50%);"></div> <!-- 2B -->
@@ -110,7 +131,7 @@
   <div class="slot" data-pos="2B" style="top:50px; left:50%; transform:translateX(-50%);">2B</div>
   <div class="slot" data-pos="3B" style="bottom:50px; left:50px;">3B</div>
   <div class="slot" data-pos="SS" style="bottom:80px; left:35%;">SS</div>
-  <div class="slot" data-pos="P" style="bottom:90px; left:50%; transform:translateX(-50%);">P</div>
+  <div class="slot" data-pos="P" style="top:135px; left:50%; transform:translateX(-50%);">P</div>
   <div class="slot" data-pos="C" style="bottom:10px; left:50%; transform:translateX(-50%);">C</div>
   <div class="slot" data-pos="LF" style="top:20px; left:40px;">LF</div>
   <div class="slot" data-pos="CF" style="top:0px; left:50%; transform:translateX(-50%);">CF</div>
