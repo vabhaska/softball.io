@@ -18,31 +18,20 @@
     height: 360px;
     position: relative;
     margin-bottom: 20px;
-    background-color: #228B22; /* grass outfield */
+    background-color: #228B22; /* grass */
     border-radius: 10px;
   }
 
-  /* Cone-shaped dirt infield */
+  /* Infield diamond */
   #infield {
     position: absolute;
     width: 180px;
     height: 180px;
     background-color: #a0522d; /* dirt */
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-  }
-
-  /* Pitcher's mound diamond */
-  #mound {
-    position: absolute;
-    width: 40px;
-    height: 40px;
-    background-color: #d2b48c; /* lighter dirt for mound */
-    top: 120px;
-    left: 50%;
-    transform: translateX(-50%) rotate(45deg);
+    top: 90px;
+    left: 90px;
+    transform: rotate(45deg);
+    border-radius: 5px;
   }
 
   /* Base markers */
@@ -55,7 +44,7 @@
     border-radius: 2px;
   }
 
-  /* Position indicators */
+  /* Position indicators as small circles with label */
   .slot {
     width: 25px;
     height: 25px;
@@ -91,12 +80,20 @@
     cursor: grab;
   }
 
-  /* Smaller font when player is on field */
+  /* Keep player names visible on field with slot */
   .slot .player {
     font-size: 10px;
-    width: 45px;
+    width: 60px;
     height: 20px;
     line-height: 20px;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(2px);
+    background: #87cefa;
+    border-radius: 4px;
+    text-align: center;
+    pointer-events: none; /* allow slot to accept drops */
   }
 
   table {
@@ -118,20 +115,19 @@
 
 <div id="field">
   <div id="infield"></div>
-  <div id="mound"></div>
 
   <!-- Base markers -->
-  <div class="base" style="bottom:10px; left:50%; transform:translateX(-50%);"></div> <!-- Home -->
+  <div class="base" style="bottom:50px; left:50px;"></div> <!-- 3B -->
   <div class="base" style="bottom:50px; right:50px;"></div> <!-- 1B -->
   <div class="base" style="top:50px; left:50%; transform:translateX(-50%);"></div> <!-- 2B -->
-  <div class="base" style="bottom:50px; left:50px;"></div> <!-- 3B -->
+  <div class="base" style="bottom:10px; left:50%; transform:translateX(-50%);"></div> <!-- Home -->
 
   <!-- Position indicators -->
   <div class="slot" data-pos="1B" style="bottom:50px; right:50px;">1B</div>
   <div class="slot" data-pos="2B" style="top:50px; left:50%; transform:translateX(-50%);">2B</div>
   <div class="slot" data-pos="3B" style="bottom:50px; left:50px;">3B</div>
   <div class="slot" data-pos="SS" style="bottom:80px; left:35%;">SS</div>
-  <div class="slot" data-pos="P" style="top:135px; left:50%; transform:translateX(-50%);">P</div>
+  <div class="slot" data-pos="P" style="top:50%; left:50%; transform:translate(-50%,50%);">P</div>
   <div class="slot" data-pos="C" style="bottom:10px; left:50%; transform:translateX(-50%);">C</div>
   <div class="slot" data-pos="LF" style="top:20px; left:40px;">LF</div>
   <div class="slot" data-pos="CF" style="top:0px; left:50%; transform:translateX(-50%);">CF</div>
@@ -175,7 +171,10 @@ document.querySelectorAll('.slot').forEach(slot => {
   slot.addEventListener('dragover', e => e.preventDefault());
   slot.addEventListener('drop', e => {
     e.preventDefault();
-    if(dragged) slot.appendChild(dragged);
+    if(dragged) {
+      // Append player inside slot but allow name to be visible
+      slot.appendChild(dragged);
+    }
     dragged = null;
     updateUnusedTable();
   });
