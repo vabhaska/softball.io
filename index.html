@@ -14,6 +14,7 @@ body { font-family: Arial; display:flex; flex-direction:column; align-items:cent
 .bucket-title { width:100%; font-weight:bold; margin-bottom:5px; }
 .player { width:80px; height:30px; background:#87cefa; margin:2px; text-align:center; line-height:30px; border-radius:4px; font-size:12px; cursor:grab; position:relative; }
 .slot .player { font-size:10px; width:60px; height:20px; line-height:20px; position:absolute; top:100%; left:50%; transform:translateX(-50%) translateY(2px); background:#87cefa; border-radius:4px; text-align:center; }
+button { margin:10px; padding:8px 12px; font-size:16px; border-radius:5px; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -40,60 +41,103 @@ body { font-family: Arial; display:flex; flex-direction:column; align-items:cent
 <div class="bucket" id="outfield"><div class="bucket-title">Outfield</div></div>
 <div class="bucket" id="sub"><div class="bucket-title">Sub for the Inning</div></div>
 
+<button id="downloadBtn">Download positions.json</button>
+
 <script>
-const RAW_JSON_URL = "https://raw.githubusercontent.com/vabhaska/softball/main/positions.json";
-const USERNAME = "vabhaska";
-const REPO = "softball.io";
-const TOKEN = "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"; // Keep this secret
+// Initial lineup
+let positions = {
+  "P": "Vamsi",
+  "C": "Brianna",
+  "1B": "Marcus",
+  "2B": "Natalie",
+  "3B": "Corbin",
+  "SS": "Ellison",
+  "LF": "Charles",
+  "CF": "Matt Johnson",
+  "RF": "Danielle",
+  "Outfield": ["Lauren", "Taylor"],
+  "Sub": []
+};
 
-let positions = {};
-
-async function loadPositions() {
-  const res = await fetch(RAW_JSON_URL);
-  positions = await res.json();
-  renderField();
-}
-
+// Render field and buckets
 function renderField() {
-  ['outfield','sub'].forEach(id=>{document.getElementById(id).querySelectorAll('.player').forEach(p=>p.remove());});
+  ['outfield','sub'].forEach(id=>{
+    document.getElementById(id).querySelectorAll('.player').forEach(p=>p.remove());
+  });
   document.querySelectorAll('.slot').forEach(slot=>{
     const pos = slot.dataset.pos;
     slot.innerHTML = pos;
     if(positions[pos]){
-      const pDiv=document.createElement('div'); pDiv.classList.add('player'); pDiv.textContent=positions[pos]; makeDraggable(pDiv); slot.appendChild(pDiv);
+      const pDiv=document.createElement('div');
+      pDiv.classList.add('player');
+      pDiv.textContent=positions[pos];
+      makeDraggable(pDiv);
+      slot.appendChild(pDiv);
     }
   });
-  positions["Outfield"].forEach(name=>{const pDiv=document.createElement('div'); pDiv.classList.add('player'); pDiv.textContent=name; makeDraggable(pDiv); document.getElementById('outfield').appendChild(pDiv);});
-  positions["Sub"].forEach(name=>{const pDiv=document.createElement('div'); pDiv.classList.add('player'); pDiv.textContent=name; makeDraggable(pDiv); document.getElementById('sub').appendChild(pDiv);});
-}
-
-// Drag-and-drop editor
-function makeDraggable(player){
-  let dragged=null, offsetX=0, offsetY=0;
-  player.addEventListener('mousedown',startDrag);player.addEventListener('touchstart',startDrag,{passive:false});
-  function startDrag(e){e.preventDefault();dragged=player;const rect=dragged.getBoundingClientRect();offsetX=e.touches?e.touches[0].clientX-rect.left:e.offsetX;offsetY=e.touches?e.touches[0].clientY-rect.top:e.offsetY;dragged.style.position='absolute';dragged.style.zIndex=1000;document.addEventListener('mousemove',move);document.addEventListener('mouseup',drop);document.addEventListener('touchmove',move,{passive:false});document.addEventListener('touchend',drop);}
-  function move(e){if(!dragged)return;e.preventDefault();const x=e.touches?e.touches[0].clientX:e.clientX;const y=e.touches?e.touches[0].clientY:e.clientY;dragged.style.left=(x-offsetX)+'px';dragged.style.top=(y-offsetY)+'px';}
-  function drop(e){if(!dragged)return; dragged.style.position='static'; dragged.style.zIndex=''; dragged=null; document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',drop); document.removeEventListener('touchmove',move); document.removeEventListener('touchend',drop); savePositionsToGitHub(); }
-}
-
-// Save updated positions.json to GitHub
-async function savePositionsToGitHub(){
-  const url = `https://api.github.com/repos/${USERNAME}/${REPO}/contents/positions.json`;
-  const message = "Update positions from editor";
-  const content = btoa(JSON.stringify(positions, null, 2)); // encode JSON to base64
-  // Get current SHA
-  const res = await fetch(url,{headers:{Authorization:`token ${TOKEN}`}});
-  const data = await res.json();
-  const sha = data.sha;
-  // Push update
-  await fetch(url,{
-    method:"PUT",
-    headers:{Authorization:`token ${TOKEN}`},
-    body: JSON.stringify({message,content,sha})
+  positions["Outfield"].forEach(name=>{
+    const pDiv=document.createElement('div');pDiv.classList.add('player');pDiv.textContent=name;makeDraggable(pDiv);document.getElementById('outfield').appendChild(pDiv);
+  });
+  positions["Sub"].forEach(name=>{
+    const pDiv=document.createElement('div');pDiv.classList.add('player');pDiv.textContent=name;makeDraggable(pDiv);document.getElementById('sub').appendChild(pDiv);
   });
 }
 
-loadPositions();
+// Drag-and-drop for mobile and desktop
+function makeDraggable(player){
+  let dragged=null, offsetX=0, offsetY=0;
+  player.addEventListener('mousedown',startDrag);
+  player.addEventListener('touchstart',startDrag,{passive:false});
+  function startDrag(e){
+    e.preventDefault();
+    dragged=player;
+    const rect=dragged.getBoundingClientRect();
+    offsetX=e.touches?e.touches[0].clientX-rect.left:e.offsetX;
+    offsetY=e.touches?e.touches[0].clientY-rect.top:e.offsetY;
+    dragged.style.position='absolute'; dragged.style.zIndex=1000;
+    document.addEventListener('mousemove',move);
+    document.addEventListener('mouseup',drop);
+    document.addEventListener('touchmove',move,{passive:false});
+    document.addEventListener('touchend',drop);
+  }
+  function move(e){
+    if(!dragged) return;
+    e.preventDefault();
+    const x = e.touches?e.touches[0].clientX:e.clientX;
+    const y = e.touches?e.touches[0].clientY:e.clientY;
+    dragged.style.left=(x-offsetX)+'px';
+    dragged.style.top=(y-offsetY)+'px';
+  }
+  function drop(){
+    if(!dragged) return;
+    dragged.style.position='static'; dragged.style.zIndex='';
+    dragged=null;
+    // Update positions object when player is dropped back to slot or bucket
+    updatePositionsFromDOM();
+  }
+}
+
+// Update positions object from current DOM
+function updatePositionsFromDOM(){
+  document.querySelectorAll('.slot').forEach(slot=>{
+    const p = slot.querySelector('.player');
+    positions[slot.dataset.pos] = p?p.textContent:null;
+  });
+  positions["Outfield"] = Array.from(document.getElementById('outfield').children).filter(c=>c.classList.contains('player')).map(c=>c.textContent);
+  positions["Sub"] = Array.from(document.getElementById('sub').children).filter(c=>c.classList.contains('player')).map(c=>c.textContent);
+}
+
+// Download positions.json
+document.getElementById('downloadBtn').addEventListener('click',()=>{
+  updatePositionsFromDOM();
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(positions, null, 2));
+  const dlAnchor = document.createElement('a');
+  dlAnchor.setAttribute("href", dataStr);
+  dlAnchor.setAttribute("download", "positions.json");
+  dlAnchor.click();
+});
+
+renderField();
 </script>
 </body>
 </html>
