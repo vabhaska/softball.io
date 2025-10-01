@@ -97,7 +97,6 @@
     background: #87cefa;
     border-radius: 4px;
     text-align: center;
-    pointer-events: none; /* allow slot to accept drops */
   }
 
   table {
@@ -140,18 +139,18 @@
 
 <h3>Unused Players</h3>
 <div id="players" ondragover="event.preventDefault()" ondrop="dropToPool(event)">
-  <div class="player" draggable="true">Corbin</div>
-  <div class="player" draggable="true">Danielle</div>
-  <div class="player" draggable="true">Marcus</div>
-  <div class="player" draggable="true">Natalie</div>
-  <div class="player" draggable="true">Russell</div>
-  <div class="player" draggable="true">Vamsi</div>
-  <div class="player" draggable="true">Brianna</div>
-  <div class="player" draggable="true">Charles</div>
-  <div class="player" draggable="true">Matt Johnson</div>
-  <div class="player" draggable="true">Ellison</div>
-  <div class="player" draggable="true">Lauren</div>
-  <div class="player" draggable="true">Taylor</div>
+  <div class="player">Corbin</div>
+  <div class="player">Danielle</div>
+  <div class="player">Marcus</div>
+  <div class="player">Natalie</div>
+  <div class="player">Russell</div>
+  <div class="player">Vamsi</div>
+  <div class="player">Brianna</div>
+  <div class="player">Charles</div>
+  <div class="player">Matt Johnson</div>
+  <div class="player">Ellison</div>
+  <div class="player">Lauren</div>
+  <div class="player">Taylor</div>
 </div>
 
 <table>
@@ -164,11 +163,15 @@
 <script>
 let dragged = null;
 
-// Drag start
-document.querySelectorAll('.player').forEach(player => {
+// Function to make player draggable
+function makeDraggable(player) {
+  player.setAttribute('draggable', true);
   player.addEventListener('dragstart', e => { dragged = e.target; });
   player.addEventListener('touchstart', e => { dragged = e.target; });
-});
+}
+
+// Initialize draggable players
+document.querySelectorAll('.player').forEach(makeDraggable);
 
 // Drop on slots
 document.querySelectorAll('.slot').forEach(slot => {
@@ -180,7 +183,6 @@ document.querySelectorAll('.slot').forEach(slot => {
     updateUnusedTable();
   });
   slot.addEventListener('touchend', e => {
-    e.preventDefault();
     if(dragged) slot.appendChild(dragged);
     dragged = null;
     updateUnusedTable();
@@ -188,13 +190,14 @@ document.querySelectorAll('.slot').forEach(slot => {
 });
 
 // Drop back to players pool
-function dropToPool(e) {
-  e.preventDefault();
-  if (dragged) {
-    document.getElementById('players').appendChild(dragged);
-    dragged.style.position = 'static';
-    dragged.style.top = '';
-    dragged.style.left = '';
+const pool = document.getElementById('players');
+pool.addEventListener('dragover', e => e.preventDefault());
+pool.addEventListener('drop', e => dropToPool());
+pool.addEventListener('touchend', e => dropToPool());
+
+function dropToPool() {
+  if(dragged) {
+    pool.appendChild(dragged);
     dragged = null;
     updateUnusedTable();
   }
@@ -218,7 +221,21 @@ function updateUnusedTable() {
   });
 }
 
-// Initialize
+// Observe mutations to reapply draggable
+const observer = new MutationObserver(mutations => {
+  mutations.forEach(m => {
+    m.addedNodes.forEach(node => {
+      if(node.classList && node.classList.contains('player')) {
+        makeDraggable(node);
+      }
+    });
+  });
+});
+document.querySelectorAll('.slot, #players').forEach(el => 
+  observer.observe(el, {childList:true})
+);
+
+// Initialize table
 updateUnusedTable();
 </script>
 
