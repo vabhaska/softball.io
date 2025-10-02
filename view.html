@@ -2,19 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Softball Lineup Manager</title>
+  <title>Softball Lineup Viewer</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
       background: #4CAF50;
-      margin: 0;
-      padding: 0;
-    }
-    h1 {
       color: white;
-      margin: 10px 0;
     }
+    h1 { margin-top: 10px; }
     #field {
       position: relative;
       margin: 20px auto;
@@ -36,30 +32,25 @@
       justify-content: center;
       font-size: 11px;
       text-align: center;
-      cursor: pointer;
+    }
+    .position .player {
+      font-size: 9px;
+      margin-top: 2px;
+      display: block;
     }
     .bucket {
-      border: 2px dashed white;
-      min-height: 60px;
+      margin: 15px auto;
       padding: 10px;
-      margin: 10px auto;
       width: 80%;
-      color: white;
-    }
-    .player {
-      background: #333;
-      color: white;
-      margin: 4px;
-      padding: 6px 10px;
+      min-height: 50px;
+      border: 2px dashed white;
       border-radius: 5px;
-      cursor: grab;
-      display: inline-block;
-      font-size: 12px;
+      text-align: left;
     }
   </style>
 </head>
 <body>
-  <h1>Softball Lineup Manager</h1>
+  <h1>Softball Lineup Viewer</h1>
 
   <div id="field">
     <div class="position" id="p" style="top: 220px; left: 220px;">P</div>
@@ -73,62 +64,41 @@
     <div class="position" id="rf" style="top: 40px; left: 380px;">RF</div>
   </div>
 
-  <div class="bucket" id="roster"><b>Roster</b></div>
-  <div class="bucket" id="sub"><b>Sub for Inning</b></div>
-  <div class="bucket" id="outfield"><b>Outfield</b></div>
-  <div class="bucket" id="reset"><b>Reset</b></div>
+  <div class="bucket" id="outfield"><b>Outfield:</b></div>
+  <div class="bucket" id="sub"><b>Sub for Inning:</b></div>
+  <div class="bucket" id="roster"><b>Remaining Roster:</b></div>
 
   <script>
-    const players = ["Corbin", "Danielle", "Marcus", "Natalie", "Russell", "Vamsi", "Brianna", "Charles", "Matt Johnson"];
+    const repo = "YOUR_USERNAME/YOUR_REPO"; // Replace with your repo, e.g., vamsibhaskar/softball-lineup
 
-    // Fill roster with players
-    const roster = document.getElementById("roster");
-    players.forEach(name => {
-      const div = document.createElement("div");
-      div.className = "player";
-      div.draggable = true;
-      div.innerText = name;
-      div.id = "player-" + name.replace(/\s+/g, '');
-      roster.appendChild(div);
-    });
+    async function loadLineup() {
+      try {
+        const res = await fetch(`https://raw.githubusercontent.com/${repo}/main/lineup.json`);
+        if (!res.ok) return;
+        const data = await res.json();
 
-    // Make all buckets and positions droppable
-    const buckets = document.querySelectorAll(".bucket, .position");
-
-    buckets.forEach(bucket => {
-      bucket.addEventListener("dragover", e => e.preventDefault());
-
-      bucket.addEventListener("drop", e => {
-        e.preventDefault();
-        const playerId = e.dataTransfer.getData("text");
-        const player = document.getElementById(playerId);
-
-        // If dropping on a position, check if it already has a player
-        if (bucket.classList.contains("position")) {
-          if (bucket.querySelector(".player")) {
-            alert("This position is already taken!");
-            return;
+        // Fill positions
+        for (const pos of ["P","C","1B","2B","3B","SS","LF","CF","RF"]) {
+          const slot = document.getElementById(pos.toLowerCase());
+          if (slot && data[pos]) {
+            slot.innerHTML = pos + `<span class="player">${data[pos]}</span>`;
           }
-          // Remove player from other position if already assigned
-          document.querySelectorAll(".position").forEach(pos => {
-            const assigned = pos.querySelector(".player");
-            if (assigned && assigned.id === playerId) {
-              pos.removeChild(assigned);
-            }
-          });
         }
 
-        // Move player into target
-        bucket.appendChild(player);
-      });
-    });
+        // Fill buckets
+        document.getElementById("outfield").innerHTML = "<b>Outfield:</b> " + (data.Outfield || []).join(", ");
+        document.getElementById("sub").innerHTML = "<b>Sub for Inning:</b> " + (data.Sub || []).join(", ");
+        document.getElementById("roster").innerHTML = "<b>Remaining Roster:</b> " + (data.Roster || []).join(", ");
 
-    // Make players draggable
-    document.querySelectorAll(".player").forEach(player => {
-      player.addEventListener("dragstart", e => {
-        e.dataTransfer.setData("text", e.target.id);
-      });
-    });
+      } catch(e) {
+        console.error("Could not load lineup.json", e);
+      }
+    }
+
+    loadLineup();
+
+    // Optional: auto-refresh every 10 seconds
+    setInterval(loadLineup, 10000);
   </script>
 </body>
 </html>
