@@ -1,9 +1,9 @@
 {
   "P": null,
-  "C": "Natalie",
+  "C": "Danielle",
   "1B": null,
   "2B": null,
-  "3B": null,
+  "3B": "Corbin",
   "SS": null,
   "LF": null,
   "CF": null,
@@ -11,9 +11,8 @@
   "Outfield": [],
   "Sub": [],
   "Roster": [
-    "Corbin",
-    "Danielle",
     "Marcus",
+    "Natalie",
     "Russell",
     "Vamsi",
     "Brianna",
