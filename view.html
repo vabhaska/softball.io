@@ -2,60 +2,133 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Softball Lineup Viewer</title>
+  <title>Softball Lineup Manager</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #4caf50; color: white; text-align: center; }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #4CAF50;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      color: white;
+      margin: 10px 0;
+    }
     #field {
       position: relative;
-      width: 600px; height: 600px;
       margin: 20px auto;
-      background: radial-gradient(circle at center, #d2b48c 200px, #4caf50 200px);
-      border: 4px solid #fff; border-radius: 50%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle at center, #d2b48c 150px, #4CAF50 151px);
+      border: 2px solid #333;
+      border-radius: 50%;
     }
-    .slot {
-      width: 32px; height: 32px;
-      background: white; border-radius: 50%;
-      text-align: center; line-height: 10px;
-      font-size: 9px; font-weight: bold;
-      position: absolute; border: 2px solid #000;
-      color: #000; padding: 2px;
+    .position {
+      width: 45px;
+      height: 45px;
+      background: white;
+      border: 2px solid black;
+      border-radius: 50%;
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      text-align: center;
+      cursor: pointer;
     }
-    .slot .player { font-size: 8px; display: block; margin-top: 2px; }
+    .bucket {
+      border: 2px dashed white;
+      min-height: 60px;
+      padding: 10px;
+      margin: 10px auto;
+      width: 80%;
+      color: white;
+    }
+    .player {
+      background: #333;
+      color: white;
+      margin: 4px;
+      padding: 6px 10px;
+      border-radius: 5px;
+      cursor: grab;
+      display: inline-block;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
-  <h1>Softball Lineup Viewer</h1>
-  <div id="field"></div>
+  <h1>Softball Lineup Manager</h1>
+
+  <div id="field">
+    <div class="position" id="p" style="top: 220px; left: 220px;">P</div>
+    <div class="position" id="c" style="top: 360px; left: 220px;">C</div>
+    <div class="position" id="1b" style="top: 260px; left: 380px;">1B</div>
+    <div class="position" id="2b" style="top: 160px; left: 320px;">2B</div>
+    <div class="position" id="ss" style="top: 160px; left: 120px;">SS</div>
+    <div class="position" id="3b" style="top: 260px; left: 60px;">3B</div>
+    <div class="position" id="lf" style="top: 40px; left: 60px;">LF</div>
+    <div class="position" id="cf" style="top: 20px; left: 220px;">CF</div>
+    <div class="position" id="rf" style="top: 40px; left: 380px;">RF</div>
+  </div>
+
+  <div class="bucket" id="roster"><b>Roster</b></div>
+  <div class="bucket" id="sub"><b>Sub for Inning</b></div>
+  <div class="bucket" id="outfield"><b>Outfield</b></div>
+  <div class="bucket" id="reset"><b>Reset</b></div>
 
   <script>
-    const positions = {
-      "P": [280, 280], "C": [280, 340], "1B": [400, 300], "2B": [320, 240],
-      "3B": [160, 300], "SS": [240, 240], "LF": [100, 100], "CF": [280, 60], "RF": [460, 100]
-    };
+    const players = ["Corbin", "Danielle", "Marcus", "Natalie", "Russell", "Vamsi", "Brianna", "Charles", "Matt Johnson"];
 
-    const field = document.getElementById("field");
+    // Fill roster with players
+    const roster = document.getElementById("roster");
+    players.forEach(name => {
+      const div = document.createElement("div");
+      div.className = "player";
+      div.draggable = true;
+      div.innerText = name;
+      div.id = "player-" + name.replace(/\s+/g, '');
+      roster.appendChild(div);
+    });
 
-    for (const pos in positions) {
-      const [x,y] = positions[pos];
-      const slot = document.createElement("div");
-      slot.className = "slot";
-      slot.style.left = `${x}px`; slot.style.top = `${y}px`;
-      slot.dataset.position = pos;
-      slot.innerHTML = `<div>${pos}</div><div class="player"></div>`;
-      field.appendChild(slot);
-    }
+    // Make all buckets and positions droppable
+    const buckets = document.querySelectorAll(".bucket, .position");
 
-    async function loadLineup(){
-      const repo = "YOUR_USERNAME/YOUR_REPO"; // same as index.html
-      const res = await fetch(`https://raw.githubusercontent.com/${repo}/main/lineup.json`);
-      if(!res.ok) return;
-      const lineup = await res.json();
-      for(const pos in lineup){
-        const slot = document.querySelector(`.slot[data-position='${pos}'] .player`);
-        if(slot) slot.textContent = lineup[pos];
-      }
-    }
-    loadLineup();
+    buckets.forEach(bucket => {
+      bucket.addEventListener("dragover", e => e.preventDefault());
+
+      bucket.addEventListener("drop", e => {
+        e.preventDefault();
+        const playerId = e.dataTransfer.getData("text");
+        const player = document.getElementById(playerId);
+
+        // If dropping on a position, check if it already has a player
+        if (bucket.classList.contains("position")) {
+          if (bucket.querySelector(".player")) {
+            alert("This position is already taken!");
+            return;
+          }
+          // Remove player from other position if already assigned
+          document.querySelectorAll(".position").forEach(pos => {
+            const assigned = pos.querySelector(".player");
+            if (assigned && assigned.id === playerId) {
+              pos.removeChild(assigned);
+            }
+          });
+        }
+
+        // Move player into target
+        bucket.appendChild(player);
+      });
+    });
+
+    // Make players draggable
+    document.querySelectorAll(".player").forEach(player => {
+      player.addEventListener("dragstart", e => {
+        e.dataTransfer.setData("text", e.target.id);
+      });
+    });
   </script>
 </body>
 </html>
