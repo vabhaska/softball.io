@@ -4,73 +4,22 @@
   <meta charset="UTF-8">
   <title>Softball Lineup Manager</title>
   <style>
-    body {
-      font-family: Arial;
-      text-align: center;
-      background: #4CAF50;
-      margin: 0;
-      padding: 0;
-    }
-    h1 {
-      color: white;
-      margin: 10px 0;
-    }
+    body { font-family: Arial; text-align: center; background: #4CAF50; margin: 0; padding: 0; }
+    h1 { color: white; margin: 10px 0; }
     #field {
-      position: relative;
-      margin: 20px auto;
-      width: 500px;
-      height: 500px;
+      position: relative; margin: 20px auto; width: 500px; height: 500px;
       background: radial-gradient(circle at center, #d2b48c 150px, #4CAF50 151px);
-      border: 2px solid #333;
-      border-radius: 50%;
+      border: 2px solid #333; border-radius: 50%;
     }
     .position {
-      width: 45px;
-      height: 45px;
-      background: white;
-      border: 2px solid black;
-      border-radius: 50%;
-      position: absolute;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      text-align: center;
-      cursor: pointer;
+      width: 45px; height: 45px; background: white; border: 2px solid black; border-radius: 50%;
+      position: absolute; display: flex; align-items: center; justify-content: center;
+      font-size: 11px; text-align: center; cursor: pointer;
     }
-    .position .player {
-      font-size: 9px;
-      margin-top: 2px;
-      display: block;
-    }
-    .bucket {
-      border: 2px dashed white;
-      min-height: 60px;
-      padding: 10px;
-      margin: 10px auto;
-      width: 80%;
-      color: white;
-    }
-    .player {
-      background: #333;
-      color: white;
-      margin: 4px;
-      padding: 6px 10px;
-      border-radius: 5px;
-      cursor: grab;
-      display: inline-block;
-      font-size: 12px;
-    }
-    button {
-      margin: 5px;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      font-weight: bold;
-      background-color: #ff9800;
-      color: white;
-      cursor: pointer;
-    }
+    .position .player { font-size: 9px; margin-top: 2px; display: block; }
+    .bucket { border: 2px dashed white; min-height: 60px; padding: 10px; margin: 10px auto; width: 80%; color: white; }
+    .player { background: #333; color: white; margin: 4px; padding: 6px 10px; border-radius: 5px; cursor: grab; display: inline-block; font-size: 12px; }
+    button { margin: 5px; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; background-color: #ff9800; color: white; cursor: pointer; }
   </style>
 </head>
 <body>
