@@ -7,7 +7,7 @@
   "SS": "Russell",
   "LF": "Corbin",
   "CF": "Marcus",
-  "RF": null,
+  "RF": "Taylor",
   "Outfield": [
     "Charles"
   ],
@@ -15,7 +15,6 @@
     "Lauren"
   ],
   "Roster": [
-    "Matt Johnson",
-    "Taylor"
+    "Matt Johnson"
   ]
 }
