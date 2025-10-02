@@ -1,20 +1,14 @@
 {
-  "P": "Vamsi",
-  "C": "Natalie",
-  "1B": "Ellison",
-  "2B": "Brianna",
-  "3B": "Danielle",
-  "SS": "Russell",
-  "LF": "Corbin",
-  "CF": "Marcus",
-  "RF": "Taylor",
-  "Outfield": [
-    "Charles"
-  ],
-  "Sub": [
-    "Lauren"
-  ],
-  "Roster": [
-    "Matt Johnson"
-  ]
+  "P": "Corbin",
+  "C": "Brianna",
+  "1B": "Marcus",
+  "2B": "Natalie",
+  "3B": "Charles",
+  "SS": "Vamsi",
+  "LF": "Ellison",
+  "CF": "Matt Johnson",
+  "RF": "Danielle",
+  "Outfield": ["Russell","Lauren","Taylor"],
+  "Sub": [],
+  "Roster": []
 }
