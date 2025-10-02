@@ -4,141 +4,188 @@
   <meta charset="UTF-8">
   <title>Softball Lineup Manager</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #4caf50; color: white; text-align: center; }
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #4CAF50;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      color: white;
+      margin: 10px 0;
+    }
     #field {
       position: relative;
-      width: 600px; height: 600px;
       margin: 20px auto;
-      background: radial-gradient(circle at center, #d2b48c 200px, #4caf50 200px);
-      border: 4px solid #fff; border-radius: 50%;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle at center, #d2b48c 150px, #4CAF50 151px);
+      border: 2px solid #333;
+      border-radius: 50%;
     }
-    .slot {
-      width: 32px; height: 32px;
-      background: white; border-radius: 50%;
-      text-align: center; line-height: 10px;
-      font-size: 9px; font-weight: bold;
-      position: absolute; border: 2px solid #000;
-      color: #000; padding: 2px;
+    .position {
+      width: 45px;
+      height: 45px;
+      background: white;
+      border: 2px solid black;
+      border-radius: 50%;
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      text-align: center;
+      cursor: pointer;
     }
-    .slot .player { font-size: 8px; display: block; margin-top: 2px; }
-
-    #buckets { display: flex; justify-content: space-around; margin: 20px; }
+    .position .player {
+      font-size: 9px;
+      margin-top: 2px;
+      display: block;
+    }
     .bucket {
-      width: 200px; min-height: 150px;
-      background: rgba(255,255,255,0.2); border: 2px dashed white;
-      border-radius: 10px; padding: 10px;
+      border: 2px dashed white;
+      min-height: 60px;
+      padding: 10px;
+      margin: 10px auto;
+      width: 80%;
+      color: white;
     }
     .player {
-      background: #fff; color: #000;
-      margin: 4px; padding: 4px; border-radius: 6px;
-      cursor: grab; font-size: 14px;
+      background: #333;
+      color: white;
+      margin: 4px;
+      padding: 6px 10px;
+      border-radius: 5px;
+      cursor: grab;
+      display: inline-block;
+      font-size: 12px;
     }
     button {
-      margin: 10px; padding: 8px 16px;
-      font-size: 14px; border-radius: 6px;
-      border: none; cursor: pointer;
+      margin: 5px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      background-color: #ff9800;
+      color: white;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
   <h1>Softball Lineup Manager</h1>
-  <div id="field"></div>
 
-  <div id="buckets">
-    <div class="bucket" id="roster"><h3>Roster</h3></div>
-    <div class="bucket" id="outfield"><h3>Outfield</h3></div>
-    <div class="bucket" id="sub"><h3>Sub</h3></div>
-    <div class="bucket" id="reset"><h3>Reset</h3></div>
+  <div id="field">
+    <div class="position" id="p" style="top: 220px; left: 220px;">P</div>
+    <div class="position" id="c" style="top: 360px; left: 220px;">C</div>
+    <div class="position" id="1b" style="top: 260px; left: 380px;">1B</div>
+    <div class="position" id="2b" style="top: 160px; left: 320px;">2B</div>
+    <div class="position" id="ss" style="top: 160px; left: 120px;">SS</div>
+    <div class="position" id="3b" style="top: 260px; left: 60px;">3B</div>
+    <div class="position" id="lf" style="top: 40px; left: 60px;">LF</div>
+    <div class="position" id="cf" style="top: 20px; left: 220px;">CF</div>
+    <div class="position" id="rf" style="top: 40px; left: 380px;">RF</div>
   </div>
 
-  <button onclick="saveToGitHub()">Save to GitHub</button>
+  <div class="bucket" id="roster"><b>Roster</b></div>
+  <div class="bucket" id="sub"><b>Sub for Inning</b></div>
+  <div class="bucket" id="outfield"><b>Outfield</b></div>
+
+  <button onclick="resetLineup()">Reset Lineup</button>
+  <button onclick="exportJSON()">Export Lineup JSON</button>
 
   <script>
-    const players = ["Corbin","Danielle","Marcus","Natalie","Russell","Vamsi","Brianna","Charles","Matt Johnson"];
-    const positions = {
-      "P": [280, 280], "C": [280, 340], "1B": [400, 300], "2B": [320, 240],
-      "3B": [160, 300], "SS": [240, 240], "LF": [100, 100], "CF": [280, 60], "RF": [460, 100]
+    const players = ["Corbin","Danielle","Marcus","Natalie","Russell","Vamsi","Brianna","Charles","Matt Johnson","Ellison","Lauren","Taylor"];
+
+    let lineup = {
+      P:null, C:null, "1B":null, "2B":null, "3B":null, SS:null,
+      LF:null, CF:null, RF:null,
+      Outfield:[], Sub:[], Roster:[...players]
     };
 
-    let lineup = {}; // position -> player
-    const field = document.getElementById("field");
+    const rosterDiv = document.getElementById("roster");
+    const outfieldDiv = document.getElementById("outfield");
+    const subDiv = document.getElementById("sub");
 
-    // Draw positions
-    for (const pos in positions) {
-      const [x,y] = positions[pos];
-      const slot = document.createElement("div");
-      slot.className = "slot";
-      slot.style.left = `${x}px`; slot.style.top = `${y}px`;
-      slot.dataset.position = pos;
-      slot.innerHTML = `<div>${pos}</div><div class="player"></div>`;
-      slot.ondragover = e => e.preventDefault();
-      slot.ondrop = dropPlayer;
-      field.appendChild(slot);
+    function renderBuckets() {
+      rosterDiv.innerHTML = "<b>Roster</b>";
+      lineup.Roster.forEach(p => rosterDiv.appendChild(createPlayerDiv(p)));
+
+      outfieldDiv.innerHTML = "<b>Outfield</b>";
+      lineup.Outfield.forEach(p => outfieldDiv.appendChild(createPlayerDiv(p)));
+
+      subDiv.innerHTML = "<b>Sub for Inning</b>";
+      lineup.Sub.forEach(p => subDiv.appendChild(createPlayerDiv(p)));
     }
 
-    // Fill roster
-    const rosterDiv = document.getElementById("roster");
-    players.forEach(p => {
+    function createPlayerDiv(name){
       const div = document.createElement("div");
-      div.className = "player";
-      div.textContent = p;
-      div.draggable = true;
-      div.ondragstart = dragPlayer;
-      rosterDiv.appendChild(div);
+      div.className="player";
+      div.id="player-"+name.replace(/\s+/g,'');
+      div.innerText = name;
+      div.draggable=true;
+      div.addEventListener("dragstart", e=> e.dataTransfer.setData("text", div.id));
+      return div;
+    }
+
+    function renderPositions() {
+      for(const pos of ["P","C","1B","2B","3B","SS","LF","CF","RF"]){
+        const slot = document.getElementById(pos.toLowerCase());
+        slot.innerHTML = pos + (lineup[pos]? `<span class="player">${lineup[pos]}</span>` : "");
+      }
+    }
+
+    // Buckets and positions accept drop
+    const droppables = [...document.querySelectorAll(".bucket"), ...document.querySelectorAll(".position")];
+    droppables.forEach(el => {
+      el.addEventListener("dragover", e => e.preventDefault());
+      el.addEventListener("drop", e => {
+        e.preventDefault();
+        const playerId = e.dataTransfer.getData("text");
+        const player = document.getElementById(playerId);
+        const name = player.innerText;
+
+        // Remove player from current assignment
+        Object.keys(lineup).forEach(key=>{
+          if(Array.isArray(lineup[key])) lineup[key] = lineup[key].filter(p=>p!==name);
+          else if(lineup[key]===name) lineup[key]=null;
+        });
+
+        if(el.classList.contains("position")){
+          const posName = el.id.toUpperCase();
+          if(el.querySelector(".player")){
+            alert("Position already taken!");
+            return;
+          }
+          lineup[posName]=name;
+        } else if(el.id==="outfield") lineup.Outfield.push(name);
+        else if(el.id==="sub") lineup.Sub.push(name);
+        else if(el.id==="roster") lineup.Roster.push(name);
+
+        renderPositions();
+        renderBuckets();
+      });
     });
 
-    // Drag & drop
-    let draggedPlayer = null;
-    function dragPlayer(e){ draggedPlayer = e.target; }
-    function dropPlayer(e){
-      const pos = e.currentTarget.dataset.position;
-      e.currentTarget.querySelector(".player").textContent = draggedPlayer.textContent;
-      lineup[pos] = draggedPlayer.textContent;
+    function resetLineup(){
+      lineup = {
+        P:null, C:null, "1B":null, "2B":null, "3B":null, SS:null,
+        LF:null, CF:null, RF:null,
+        Outfield:[], Sub:[], Roster:[...players]
+      };
+      renderPositions();
+      renderBuckets();
     }
 
-    // Reset bucket clears slot
-    document.getElementById("reset").ondrop = e => {
-      e.preventDefault();
-      if (!draggedPlayer) return;
-      // find slot that contains this player
-      for (const pos in lineup){
-        if(lineup[pos] === draggedPlayer.textContent){
-          delete lineup[pos];
-          [...document.querySelectorAll(".slot .player")].forEach(el=>{
-            if(el.textContent===draggedPlayer.textContent) el.textContent="";
-          });
-        }
-      }
-    };
-    document.getElementById("reset").ondragover = e => e.preventDefault();
-
-    // Save to GitHub
-    async function saveToGitHub() {
-      const token = "YOUR_TOKEN";  // replace with your GitHub token
-      const repo = "YOUR_USERNAME/YOUR_REPO"; // e.g. vamsibhaskar/softball-lineup
-      const filePath = "lineup.json";
-      const content = btoa(unescape(encodeURIComponent(JSON.stringify(lineup, null, 2))));
-      let sha = null;
-      try {
-        const res = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, {
-          headers: { Authorization: `token ${token}` }
-        });
-        if (res.ok) { const data = await res.json(); sha = data.sha; }
-      } catch(e){}
-      await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, {
-        method: "PUT",
-        headers: {
-          "Authorization": `token ${token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          message: "Update lineup",
-          content: content,
-          sha: sha || undefined
-        })
-      });
-      alert("✅ Lineup saved to GitHub!");
+    function exportJSON(){
+      const text = JSON.stringify(lineup, null, 2);
+      navigator.clipboard.writeText(text).then(()=>alert("✅ Lineup JSON copied! Paste into lineup.json on GitHub."));
     }
+
+    // Initial render
+    renderBuckets();
+    renderPositions();
   </script>
 </body>
 </html>
