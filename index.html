@@ -3,24 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Softball Positions Editor</title>
+<title>Softball Lineup Manager</title>
 <style>
-body { font-family: Arial; display:flex; flex-direction:column; align-items:center; padding:10px; }
-#field { width:360px; height:360px; position:relative; background:#228B22; border-radius:10px; margin-bottom:20px; }
-#infield { position:absolute; width:140px; height:140px; background:#a0522d; top:110px; left:110px; transform:rotate(45deg); border-radius:5px; }
-.slot { width:25px; height:25px; background:white; border-radius:50%; text-align:center; line-height:25px; font-size:10px; position:absolute; border:2px solid #000; font-weight:bold; color:#000; }
-.bucket { width:360px; min-height:40px; margin-bottom:20px; padding:5px; border:2px dashed #000; border-radius:5px; display:flex; flex-wrap:wrap; align-items:center; position:relative; }
+body { font-family: Arial; display:flex; flex-direction:column; align-items:center; padding:10px;}
+#field { width:360px; height:360px; position:relative; background:#228B22; border-radius:10px; margin-bottom:20px;}
+#infield { position:absolute; width:140px; height:140px; background:#a0522d; top:110px; left:110px; transform:rotate(45deg); border-radius:5px;}
+.slot { width:40px; height:40px; background:white; border-radius:50%; text-align:center; line-height:12px; font-size:10px; position:absolute; border:2px solid #000; font-weight:bold; color:#000; padding:3px;}
+.slot .player { font-size:9px; display:block; margin-top:2px;}
+.bucket { width:360px; min-height:40px; margin-bottom:20px; padding:5px; border:2px dashed #000; border-radius:5px; display:flex; flex-wrap:wrap; align-items:center; }
 .bucket-title { width:100%; font-weight:bold; margin-bottom:5px; }
-.player { width:80px; height:30px; background:#87cefa; margin:2px; text-align:center; line-height:30px; border-radius:4px; font-size:12px; touch-action:none; position:relative; user-select:none; }
-button { margin:10px; padding:8px 12px; font-size:16px; border-radius:5px; cursor:pointer; }
+.player { width:80px; height:30px; background:#87cefa; margin:2px; text-align:center; line-height:30px; border-radius:4px; font-size:12px; cursor:pointer; }
+.selected { background:#ffcc00 !important; }
 </style>
 </head>
 <body>
-<h2>Softball Positions Editor</h2>
+<h2>Softball Lineup Manager</h2>
 
 <div id="field">
   <div id="infield"></div>
-
   <div class="slot" data-pos="1B" style="bottom:50px; right:50px;">1B</div>
   <div class="slot" data-pos="2B" style="top:50px; left:50%; transform:translateX(-50%);">2B</div>
   <div class="slot" data-pos="3B" style="bottom:50px; left:50px;">3B</div>
@@ -32,149 +32,87 @@ button { margin:10px; padding:8px 12px; font-size:16px; border-radius:5px; curso
   <div class="slot" data-pos="RF" style="top:20px; right:40px;">RF</div>
 </div>
 
-<div class="bucket" id="roster"><div class="bucket-title">Roster</div></div>
+<div class="bucket" id="roster">
+  <div class="bucket-title">Roster</div>
+</div>
+
 <div class="bucket" id="outfield"><div class="bucket-title">Outfield</div></div>
 <div class="bucket" id="sub"><div class="bucket-title">Sub for the Inning</div></div>
 
-<button id="copyBtn">Copy positions.json to Clipboard</button>
-<button id="resetBtn">Reset Field</button>
+<button onclick="resetLineup()">Reset</button>
+<pre id="output"></pre>
 
 <script>
-// Players
-const allPlayers = ["Vamsi","Brianna","Marcus","Natalie","Corbin","Ellison","Charles","Matt Johnson","Danielle","Lauren","Taylor"];
-let positions = {"P": null,"C": null,"1B": null,"2B": null,"3B": null,"SS": null,"LF": null,"CF": null,"RF": null,"Outfield":[],"Sub":[]};
+let players = ["Corbin","Danielle","Marcus","Natalie","Russell","Vamsi","Brianna","Charles","Matt Johnson"];
+let selectedPlayer = null;
+let lineup = {
+  "P": null, "C": null, "1B": null, "2B": null, "3B": null, "SS": null,
+  "LF": null, "CF": null, "RF": null,
+  "Outfield": [], "Sub": [], "Roster": [...players]
+};
 
-function renderField(){
-  // Clear slots
+function render() {
+  // Clear roster buckets
+  document.getElementById('roster').innerHTML = `<div class="bucket-title">Roster</div>`;
+  document.getElementById('outfield').innerHTML = `<div class="bucket-title">Outfield</div>`;
+  document.getElementById('sub').innerHTML = `<div class="bucket-title">Sub for the Inning</div>`;
+  
+  // Fill roster
+  lineup["Roster"].forEach(p=>{
+    let el = document.createElement("div");
+    el.className = "player";
+    if (selectedPlayer === p) el.classList.add("selected");
+    el.textContent = p;
+    el.onclick = ()=> selectPlayer(p);
+    document.getElementById('roster').appendChild(el);
+  });
+
+  // Fill positions
   document.querySelectorAll('.slot').forEach(slot=>{
     slot.innerHTML = slot.dataset.pos;
-    const name = positions[slot.dataset.pos];
-    if(name){
-      const p = document.createElement('div');
-      p.classList.add('player');
-      p.textContent=name;
-      slot.appendChild(p);
+    let pos = slot.dataset.pos;
+    if(lineup[pos]){
+      let el = document.createElement("div");
+      el.className="player";
+      el.textContent=lineup[pos];
+      slot.appendChild(el);
     }
+    slot.onclick = ()=> assignPosition(pos);
   });
 
-  // Clear buckets
-  ['roster','outfield','sub'].forEach(id=>{
-    const b = document.getElementById(id);
-    b.innerHTML=`<div class="bucket-title">${b.querySelector('.bucket-title').textContent}</div>`;
-  });
-
-  const assigned = Object.values(positions).filter(v=>v && typeof v==="string").concat(positions["Outfield"],positions["Sub"]);
-
-  // Roster
-  allPlayers.forEach(name=>{
-    if(!assigned.includes(name)){
-      const p = document.createElement('div'); p.classList.add('player'); p.textContent=name;
-      document.getElementById('roster').appendChild(p);
-    }
-  });
-
-  // Outfield
-  positions["Outfield"].forEach(name=>{
-    const p = document.createElement('div'); p.classList.add('player'); p.textContent=name;
-    document.getElementById('outfield').appendChild(p);
-  });
-
-  // Sub
-  positions["Sub"].forEach(name=>{
-    const p = document.createElement('div'); p.classList.add('player'); p.textContent=name;
-    document.getElementById('sub').appendChild(p);
-  });
-
-  addDragEvents();
+  // Update text output
+  document.getElementById('output').textContent = JSON.stringify(lineup, null, 2);
 }
 
-// Mobile-friendly drag
-function addDragEvents(){
-  document.querySelectorAll('.player').forEach(p=>{
-    p.onpointerdown = startDrag;
-  });
+function selectPlayer(p) {
+  selectedPlayer = (selectedPlayer === p ? null : p);
+  render();
 }
 
-let dragged = null;
-let offsetX=0, offsetY=0;
-let origParent = null;
-
-function startDrag(e){
-  e.preventDefault();
-  dragged = e.currentTarget;
-  origParent = dragged.parentNode;
-
-  const rect = dragged.getBoundingClientRect();
-  offsetX = e.clientX - rect.left;
-  offsetY = e.clientY - rect.top;
-
-  dragged.style.position = 'absolute';
-  dragged.style.zIndex = 1000;
-  document.body.appendChild(dragged);
-  moveDrag(e.clientX, e.clientY);
-
-  document.onpointermove = moveDrag;
-  document.onpointerup = dropDrag;
-}
-
-function moveDrag(e){
-  if(!dragged) return;
-  dragged.style.left = (e.clientX - offsetX) + 'px';
-  dragged.style.top = (e.clientY - offsetY) + 'px';
-}
-
-function dropDrag(e){
-  document.onpointermove = null;
-  document.onpointerup = null;
-  if(!dragged) return;
-
-  // Check drop target
-  const dropTarget = document.elementFromPoint(e.clientX, e.clientY);
-  let slot = dropTarget.closest('.slot');
-  let bucket = dropTarget.closest('.bucket');
-
-  if(slot){
-    slot.appendChild(dragged);
-  } else if(bucket){
-    bucket.appendChild(dragged);
-  } else {
-    origParent.appendChild(dragged);
+function assignPosition(pos) {
+  if(!selectedPlayer) return;
+  // If position already taken, return player to roster
+  if(lineup[pos]){
+    lineup["Roster"].push(lineup[pos]);
   }
-
-  dragged.style.position = 'relative';
-  dragged.style.left = '0px';
-  dragged.style.top = '0px';
-  dragged.style.zIndex = '';
-  dragged = null;
-
-  updatePositionsFromDOM();
+  // Assign selected player
+  lineup[pos] = selectedPlayer;
+  lineup["Roster"] = lineup["Roster"].filter(x=>x!==selectedPlayer);
+  selectedPlayer = null;
+  render();
 }
 
-function updatePositionsFromDOM(){
-  document.querySelectorAll('.slot').forEach(slot=>{
-    const p = slot.querySelector('.player');
-    positions[slot.dataset.pos] = p?p.textContent:null;
-  });
-
-  positions["Outfield"] = Array.from(document.getElementById('outfield').children)
-    .filter(c=>c.classList.contains('player')).map(c=>c.textContent);
-  positions["Sub"] = Array.from(document.getElementById('sub').children)
-    .filter(c=>c.classList.contains('player')).map(c=>c.textContent);
+function resetLineup(){
+  lineup = {
+    "P": null, "C": null, "1B": null, "2B": null, "3B": null, "SS": null,
+    "LF": null, "CF": null, "RF": null,
+    "Outfield": [], "Sub": [], "Roster": [...players]
+  };
+  selectedPlayer = null;
+  render();
 }
 
-// Copy JSON
-document.getElementById('copyBtn').onclick = ()=>{
-  updatePositionsFromDOM();
-  navigator.clipboard.writeText(JSON.stringify(positions,null,2)).then(()=>alert('Copied!'));
-};
-
-// Reset
-document.getElementById('resetBtn').onclick = ()=>{
-  positions = {"P": null,"C": null,"1B": null,"2B": null,"3B": null,"SS": null,"LF": null,"CF": null,"RF": null,"Outfield":[],"Sub":[]};
-  renderField();
-};
-
-renderField();
+render();
 </script>
 </body>
 </html>
