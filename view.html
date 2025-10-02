@@ -4,49 +4,20 @@
   <meta charset="UTF-8">
   <title>Softball Lineup Viewer</title>
   <style>
-    body {
-      font-family: Arial;
-      text-align: center;
-      background: #4CAF50;
-      color: white;
-    }
+    body { font-family: Arial; text-align: center; background: #4CAF50; color: white; }
     h1 { margin-top: 10px; }
     #field {
-      position: relative;
-      margin: 20px auto;
-      width: 500px;
-      height: 500px;
+      position: relative; margin: 20px auto; width: 500px; height: 500px;
       background: radial-gradient(circle at center, #d2b48c 150px, #4CAF50 151px);
-      border: 2px solid #333;
-      border-radius: 50%;
+      border: 2px solid #333; border-radius: 50%;
     }
     .position {
-      width: 45px;
-      height: 45px;
-      background: white;
-      border: 2px solid black;
-      border-radius: 50%;
-      position: absolute;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      text-align: center;
+      width: 45px; height: 45px; background: white; border: 2px solid black; border-radius: 50%;
+      position: absolute; display: flex; align-items: center; justify-content: center; font-size: 11px; text-align: center;
     }
-    .position .player {
-      font-size: 9px;
-      margin-top: 2px;
-      display: block;
-    }
-    .bucket {
-      margin: 15px auto;
-      padding: 10px;
-      width: 80%;
-      min-height: 50px;
-      border: 2px dashed white;
-      border-radius: 5px;
-      text-align: left;
-    }
+    .position .player { font-size: 9px; margin-top: 2px; display: block; }
+    .bucket { margin: 15px auto; padding: 10px; width: 80%; min-height: 50px; border: 2px dashed white; border-radius: 5px; text-align: left; }
+    #error { color: red; font-weight: bold; margin-top: 20px; }
   </style>
 </head>
 <body>
@@ -68,20 +39,26 @@
   <div class="bucket" id="sub"><b>Sub for Inning:</b></div>
   <div class="bucket" id="roster"><b>Remaining Roster:</b></div>
 
+  <div id="error"></div>
+
   <script>
-    const repo = "vabhaska/softball.io"; // replace with your GitHub repo
-    const branch = "branch1"; // replace with your branch name
+    const repo = "vabhaska/softball.io"; // Replace with your GitHub repo
+    const branch = "branch1"; // Replace with your branch name
+    const errorDiv = document.getElementById("error");
 
     async function loadLineup() {
       try {
         const res = await fetch(`https://raw.githubusercontent.com/${repo}/${branch}/lineup.json`);
-        if(!res.ok) return;
+        if (!res.ok) throw new Error("Could not fetch lineup.json. Check URL and branch.");
         const data = await res.json();
 
+        // Clear previous error
+        errorDiv.innerText = "";
+
         // Fill positions
-        for(const pos of ["P","C","1B","2B","3B","SS","LF","CF","RF"]){
+        for (const pos of ["P","C","1B","2B","3B","SS","LF","CF","RF"]) {
           const slot = document.getElementById(pos.toLowerCase());
-          slot.innerHTML = pos + (data[pos]? `<span class="player">${data[pos]}</span>` : "");
+          slot.innerHTML = pos + (data[pos] ? `<span class="player">${data[pos]}</span>` : "");
         }
 
         // Fill buckets
@@ -89,13 +66,14 @@
         document.getElementById("sub").innerHTML = "<b>Sub for Inning:</b> " + (data.Sub || []).join(", ");
         document.getElementById("roster").innerHTML = "<b>Remaining Roster:</b> " + (data.Roster || []).join(", ");
 
-      } catch(e) {
-        console.error("Could not load lineup.json", e);
+      } catch (err) {
+        console.error(err);
+        errorDiv.innerText = "⚠️ Failed to load lineup.json. Check console for details.";
       }
     }
 
     loadLineup();
-    setInterval(loadLineup, 10000); // auto-refresh every 10 seconds
+    setInterval(loadLineup, 10000); // refresh every 10 seconds
   </script>
 </body>
 </html>
