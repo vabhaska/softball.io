@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Softball Lineup Manager</title>
+<title>Edit Lineup - Ctrl+Alt+Defeats</title>
 <style>
 body { font-family: Arial; display:flex; flex-direction:column; align-items:center; padding:10px;}
 #field { width:360px; height:360px; position:relative; background:#228B22; border-radius:10px; margin-bottom:20px;}
@@ -17,7 +17,7 @@ body { font-family: Arial; display:flex; flex-direction:column; align-items:cent
 </style>
 </head>
 <body>
-<h2>Softball Lineup Manager</h2>
+<h2>Softball Lineup Manager (Editor)</h2>
 
 <div id="field">
   <div id="infield"></div>
@@ -32,18 +32,15 @@ body { font-family: Arial; display:flex; flex-direction:column; align-items:cent
   <div class="slot" data-pos="RF" style="top:20px; right:40px;">RF</div>
 </div>
 
-<div class="bucket" id="roster">
-  <div class="bucket-title">Roster</div>
-</div>
-
+<div class="bucket" id="roster"><div class="bucket-title">Roster</div></div>
 <div class="bucket" id="outfield"><div class="bucket-title">Outfield</div></div>
 <div class="bucket" id="sub"><div class="bucket-title">Sub for the Inning</div></div>
 
 <button onclick="resetLineup()">Reset</button>
-<pre id="output"></pre>
+<button onclick="downloadLineup()">Save/Export Lineup</button>
 
 <script>
-let players = ["Corbin","Danielle","Marcus","Natalie","Russell","Vamsi","Brianna","Charles","Matt Johnson"];
+let players = ["Corbin","Danielle","Marcus","Natalie","Russell","Vamsi","Brianna","Charles","Matt Johnson","Ellison","Lauren","Taylor"];
 let selectedPlayer = null;
 let lineup = {
   "P": null, "C": null, "1B": null, "2B": null, "3B": null, "SS": null,
@@ -79,9 +76,6 @@ function render() {
     }
     slot.onclick = ()=> assignPosition(pos);
   });
-
-  // Update text output
-  document.getElementById('output').textContent = JSON.stringify(lineup, null, 2);
 }
 
 function selectPlayer(p) {
@@ -91,11 +85,9 @@ function selectPlayer(p) {
 
 function assignPosition(pos) {
   if(!selectedPlayer) return;
-  // If position already taken, return player to roster
   if(lineup[pos]){
     lineup["Roster"].push(lineup[pos]);
   }
-  // Assign selected player
   lineup[pos] = selectedPlayer;
   lineup["Roster"] = lineup["Roster"].filter(x=>x!==selectedPlayer);
   selectedPlayer = null;
@@ -110,6 +102,14 @@ function resetLineup(){
   };
   selectedPlayer = null;
   render();
+}
+
+function downloadLineup(){
+  let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(lineup, null, 2));
+  let dl = document.createElement("a");
+  dl.setAttribute("href", dataStr);
+  dl.setAttribute("download", "lineup.json");
+  dl.click();
 }
 
 render();
