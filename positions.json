@@ -1,18 +1,18 @@
 {
   "P": "Vamsi",
-  "C": "Danielle",
-  "1B": "Brianna",
+  "C": "Brianna",
+  "1B": "Matt Johnson",
   "2B": "Natalie",
-  "3B": "Corbin",
-  "SS": "Marcus",
-  "LF": "Charles",
-  "CF": "Russell",
-  "RF": "Matt Johnson",
+  "3B": "Charles",
+  "SS": "Russell",
+  "LF": "Corbin",
+  "CF": "Danielle",
+  "RF": "Marcus",
   "Outfield": [
-    "Ellison",
-    "Lauren"
+    "Ellison"
   ],
   "Sub": [
+    "Lauren",
     "Taylor"
   ],
   "Roster": []
