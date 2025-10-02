@@ -1,18 +1,21 @@
 {
-  "P": "Natalie",
-  "C": "Vamsi",
-  "1B": "Marcus",
-  "2B": "Charles",
-  "3B": "Corbin",
+  "P": "Vamsi",
+  "C": "Natalie",
+  "1B": "Ellison",
+  "2B": "Brianna",
+  "3B": "Danielle",
   "SS": "Russell",
-  "LF": "Brianna",
-  "CF": "Danielle",
-  "RF": "Matt Johnson",
-  "Outfield": [],
-  "Sub": [],
+  "LF": "Corbin",
+  "CF": "Marcus",
+  "RF": null,
+  "Outfield": [
+    "Charles"
+  ],
+  "Sub": [
+    "Lauren"
+  ],
   "Roster": [
-    "Ellison",
-    "Lauren",
+    "Matt Johnson",
     "Taylor"
   ]
 }
