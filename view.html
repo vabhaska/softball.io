@@ -10,12 +10,13 @@
       text-align: center;
       background: radial-gradient(circle at center, #aee1f9 0%, #87ceeb 100%);
       margin: 0;
-      height: 100vh;
-      overflow: hidden;
+      min-height: 100vh;
     }
+
     h1 {
       margin-top: 10px;
     }
+
     .field {
       position: relative;
       margin: 20px auto;
@@ -25,6 +26,7 @@
       border-radius: 50%;
       border: 3px solid #333;
     }
+
     .player {
       position: absolute;
       transform: translate(-50%, -50%);
@@ -34,6 +36,7 @@
       font-weight: bold;
       box-shadow: 0 0 6px rgba(0,0,0,0.3);
     }
+
     .extras {
       margin-top: 20px;
     }
@@ -52,7 +55,7 @@
   </div>
 
   <script>
-    // Coordinates for field positions (center-based)
+    // Coordinates for field positions
     const positions = {
       "P": { x: 300, y: 300 },
       "C": { x: 300, y: 420 },
@@ -67,13 +70,14 @@
 
     async function loadPositions() {
       try {
-        const response = await fetch('positions.json');
+        const response = await fetch('positions.json'); // relative path
+        if (!response.ok) throw new Error('Could not load positions.json');
         const data = await response.json();
 
         const field = document.getElementById('field');
-        field.innerHTML = ''; // clear before reloading
+        field.innerHTML = ''; // clear existing players
 
-        // Add each main position to the field
+        // Add main positions to the field
         for (const [pos, name] of Object.entries(data)) {
           if (positions[pos]) {
             const div = document.createElement('div');
@@ -88,25 +92,25 @@
         // Outfield Extras
         const outfieldList = document.getElementById('outfield-list');
         outfieldList.innerHTML = '';
-        data.Outfield.forEach(p => {
+        (data.Outfield || []).forEach(p => {
           const li = document.createElement('li');
           li.textContent = p;
           outfieldList.appendChild(li);
         });
 
-        // Subs
+        // Substitutes
         const subList = document.getElementById('sub-list');
         subList.innerHTML = '';
-        data.Sub.forEach(p => {
+        (data.Sub || []).forEach(p => {
           const li = document.createElement('li');
           li.textContent = p;
           subList.appendChild(li);
         });
 
-        // Roster
+        // Full Roster
         const rosterList = document.getElementById('roster-list');
         rosterList.innerHTML = '';
-        data.Roster.forEach(p => {
+        (data.Roster || []).forEach(p => {
           const li = document.createElement('li');
           li.textContent = p;
           rosterList.appendChild(li);
