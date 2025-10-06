@@ -1,79 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Softball Lineup Viewer</title>
   <style>
-    body { font-family: Arial; text-align: center; background: #4CAF50; color: white; }
-    h1 { margin-top: 10px; }
-    #field {
-      position: relative; margin: 20px auto; width: 500px; height: 500px;
-      background: radial-gradient(circle at center, #d2b48c 150px, #4CAF50 151px);
-      border: 2px solid #333; border-radius: 50%;
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: radial-gradient(circle at center, #aee1f9 0%, #87ceeb 100%);
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
     }
-    .position {
-      width: 45px; height: 45px; background: white; border: 2px solid black; border-radius: 50%;
-      position: absolute; display: flex; align-items: center; justify-content: center; font-size: 11px; text-align: center;
+    h1 {
+      margin-top: 10px;
     }
-    .position .player { font-size: 9px; margin-top: 2px; display: block; }
-    .bucket { margin: 15px auto; padding: 10px; width: 80%; min-height: 50px; border: 2px dashed white; border-radius: 5px; text-align: left; }
-    #error { color: red; font-weight: bold; margin-top: 20px; }
+    .field {
+      position: relative;
+      margin: 20px auto;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle at 50% 50%, #7cfc00 40%, #006400 100%);
+      border-radius: 50%;
+      border: 3px solid #333;
+    }
+    .player {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      padding: 6px 10px;
+      background: #fff;
+      border-radius: 8px;
+      font-weight: bold;
+      box-shadow: 0 0 6px rgba(0,0,0,0.3);
+    }
+    .extras {
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
   <h1>Softball Lineup Viewer</h1>
-
-  <div id="field">
-    <div class="position" id="p" style="top: 220px; left: 220px;">P</div>
-    <div class="position" id="c" style="top: 360px; left: 220px;">C</div>
-    <div class="position" id="1b" style="top: 260px; left: 380px;">1B</div>
-    <div class="position" id="2b" style="top: 160px; left: 320px;">2B</div>
-    <div class="position" id="ss" style="top: 160px; left: 120px;">SS</div>
-    <div class="position" id="3b" style="top: 260px; left: 60px;">3B</div>
-    <div class="position" id="lf" style="top: 40px; left: 60px;">LF</div>
-    <div class="position" id="cf" style="top: 20px; left: 220px;">CF</div>
-    <div class="position" id="rf" style="top: 40px; left: 380px;">RF</div>
+  <div class="field" id="field"></div>
+  <div class="extras">
+    <h3>Outfield Extras:</h3>
+    <ul id="outfield-list"></ul>
+    <h3>Substitutes:</h3>
+    <ul id="sub-list"></ul>
+    <h3>Full Roster:</h3>
+    <ul id="roster-list"></ul>
   </div>
 
-  <div class="bucket" id="outfield"><b>Outfield:</b></div>
-  <div class="bucket" id="sub"><b>Sub for Inning:</b></div>
-  <div class="bucket" id="roster"><b>Remaining Roster:</b></div>
-
-  <div id="error"></div>
-
   <script>
-    const repo = "vabhaska/softball.io"; // Replace with your GitHub repo
-    const branch = "main"; // Now using main branch
-    const errorDiv = document.getElementById("error");
+    // Coordinates for field positions (center-based)
+    const positions = {
+      "P": { x: 300, y: 300 },
+      "C": { x: 300, y: 420 },
+      "1B": { x: 450, y: 340 },
+      "2B": { x: 360, y: 220 },
+      "3B": { x: 150, y: 340 },
+      "SS": { x: 240, y: 220 },
+      "LF": { x: 130, y: 100 },
+      "CF": { x: 300, y: 60 },
+      "RF": { x: 470, y: 100 }
+    };
 
-    async function loadLineup() {
+    async function loadPositions() {
       try {
-        const res = await fetch(`https://raw.githubusercontent.com/${repo}/${branch}/lineup.json`);
-        if (!res.ok) throw new Error("Could not fetch lineup.json. Check URL and branch.");
-        const data = await res.json();
+        const response = await fetch('positions.json');
+        const data = await response.json();
 
-        // Clear previous error
-        errorDiv.innerText = "";
+        const field = document.getElementById('field');
+        field.innerHTML = ''; // clear before reloading
 
-        // Fill positions
-        for (const pos of ["P","C","1B","2B","3B","SS","LF","CF","RF"]) {
-          const slot = document.getElementById(pos.toLowerCase());
-          slot.innerHTML = pos + (data[pos] ? `<span class="player">${data[pos]}</span>` : "");
+        // Add each main position to the field
+        for (const [pos, name] of Object.entries(data)) {
+          if (positions[pos]) {
+            const div = document.createElement('div');
+            div.className = 'player';
+            div.style.left = positions[pos].x + 'px';
+            div.style.top = positions[pos].y + 'px';
+            div.textContent = `${pos}: ${name}`;
+            field.appendChild(div);
+          }
         }
 
-        // Fill buckets
-        document.getElementById("outfield").innerHTML = "<b>Outfield:</b> " + (data.Outfield || []).join(", ");
-        document.getElementById("sub").innerHTML = "<b>Sub for Inning:</b> " + (data.Sub || []).join(", ");
-        document.getElementById("roster").innerHTML = "<b>Remaining Roster:</b> " + (data.Roster || []).join(", ");
+        // Outfield Extras
+        const outfieldList = document.getElementById('outfield-list');
+        outfieldList.innerHTML = '';
+        data.Outfield.forEach(p => {
+          const li = document.createElement('li');
+          li.textContent = p;
+          outfieldList.appendChild(li);
+        });
+
+        // Subs
+        const subList = document.getElementById('sub-list');
+        subList.innerHTML = '';
+        data.Sub.forEach(p => {
+          const li = document.createElement('li');
+          li.textContent = p;
+          subList.appendChild(li);
+        });
+
+        // Roster
+        const rosterList = document.getElementById('roster-list');
+        rosterList.innerHTML = '';
+        data.Roster.forEach(p => {
+          const li = document.createElement('li');
+          li.textContent = p;
+          rosterList.appendChild(li);
+        });
 
       } catch (err) {
-        console.error(err);
-        errorDiv.innerText = "⚠️ Failed to load lineup.json. Check console for details.";
+        console.error('Error loading positions.json:', err);
       }
     }
 
-    loadLineup();
-    setInterval(loadLineup, 10000); // refresh every 10 seconds
+    loadPositions();
   </script>
 </body>
 </html>
