@@ -2,87 +2,91 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Softball Lineup Manager</title>
+  <title>Softball Field Viewer</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
-    h1 { text-align: center; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f7ff;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 { margin-bottom: 20px; }
+
+    #field {
+      position: relative;
+      margin: 0 auto;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle at center, #4caf50 60%, #3d8b40 100%);
+      border-radius: 50%;
+      border: 5px solid #fff;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    }
+
     .player {
-      background: white;
-      padding: 12px;
-      border-radius: 10px;
-      margin: 8px 0;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    form {
-      margin-top: 20px;
-      background: white;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    input, button {
-      padding: 8px;
-      margin: 5px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-    button {
-      background: #007bff;
+      position: absolute;
+      width: 80px;
+      text-align: center;
+      font-weight: bold;
       color: white;
-      border: none;
-      cursor: pointer;
+      text-shadow: 1px 1px 2px black;
     }
-    button:hover { background: #0056b3; }
+
+    #home { bottom: 60px; left: 230px; }
+    #first { right: 100px; bottom: 180px; }
+    #second { top: 200px; right: 230px; }
+    #third { left: 100px; bottom: 180px; }
+    #pitcher { top: 250px; left: 220px; }
+    #shortstop { top: 200px; left: 200px; }
+    #center { top: 50px; left: 210px; }
+    #left { top: 100px; left: 70px; }
+    #right { top: 100px; right: 70px; }
   </style>
 </head>
 <body>
   <h1>Softball Lineup</h1>
-  <div id="lineup">Loading...</div>
-
-  <form id="addForm">
-    <h3>Add Player</h3>
-    <input type="text" id="name" placeholder="Name" required>
-    <input type="text" id="position" placeholder="Position" required>
-    <input type="text" id="field" placeholder="Field">
-    <input type="text" id="note" placeholder="Note">
-    <button type="submit">Add</button>
-  </form>
+  <div id="field">
+    <div id="home" class="player"></div>
+    <div id="first" class="player"></div>
+    <div id="second" class="player"></div>
+    <div id="third" class="player"></div>
+    <div id="pitcher" class="player"></div>
+    <div id="shortstop" class="player"></div>
+    <div id="center" class="player"></div>
+    <div id="left" class="player"></div>
+    <div id="right" class="player"></div>
+  </div>
 
   <script>
-    const apiURL = "https://script.google.com/macros/s/AKfycbyko9EBjfQ6FL6kx0pCs2f8IfabjAYl2_p87nx7rODHQdlWrFx1k-goy6d2y1-pbJTM/exec";
+    const apiURL = "https://script.google.com/macros/s/AKfycbwyy3XdSDYwo7m2-ix-BK33wovAz90kNFW-NHo12K4Nolnhg5yMEKTnNBEkkFyj9936/exec";
 
-    async function loadLineup() {
+    async function loadPlayers() {
       const res = await fetch(apiURL);
       const data = await res.json();
-      const lineupDiv = document.getElementById("lineup");
-      lineupDiv.innerHTML = data.map(p => `
-        <div class="player">
-          <strong>${p.name}</strong><br>
-          Position: ${p.position}<br>
-          Field: ${p.field || ''}<br>
-          ${p.note ? `<em>${p.note}</em>` : ''}
-        </div>
-      `).join('');
+      renderField(data);
     }
 
-    document.getElementById("addForm").addEventListener("submit", async e => {
-      e.preventDefault();
-      const body = {
-        name: name.value,
-        position: position.value,
-        field: field.value,
-        note: note.value
+    function renderField(players) {
+      const map = {
+        "Catcher": "home",
+        "First Base": "first",
+        "Second Base": "second",
+        "Third Base": "third",
+        "Pitcher": "pitcher",
+        "Shortstop": "shortstop",
+        "Center Field": "center",
+        "Left Field": "left",
+        "Right Field": "right"
       };
-      await fetch(apiURL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
+      document.querySelectorAll(".player").forEach(p => p.textContent = "");
+      players.forEach(p => {
+        const id = map[p.position];
+        if (id) document.getElementById(id).textContent = p.name;
       });
-      e.target.reset();
-      loadLineup(); // refresh
-    });
+    }
 
-    loadLineup();
+    loadPlayers();
+    setInterval(loadPlayers, 30000); // auto-refresh every 30s
   </script>
 </body>
 </html>
