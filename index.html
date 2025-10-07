@@ -2,190 +2,107 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Softball Lineup Manager</title>
+  <title>Softball Lineup Editor</title>
   <style>
-    body {
-      font-family: Arial;
-      text-align: center;
-      background: #4CAF50;
-      margin: 0;
-      padding: 0;
-    }
-    h1 {
-      color: white;
-      margin: 10px 0;
-    }
-    #field {
-      position: relative;
-      margin: 20px auto;
-      width: 500px;
-      height: 500px;
-      background: radial-gradient(circle at center, #d2b48c 150px, #4CAF50 151px);
-      border: 2px solid #333;
-      border-radius: 50%;
-    }
-    .position {
-      width: 45px;
-      height: 45px;
-      background: white;
-      border: 2px solid black;
-      border-radius: 50%;
-      position: absolute;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      text-align: center;
-      cursor: pointer;
-    }
-    .position .player {
-      font-size: 9px;
-      margin-top: 2px;
-      display: block;
-    }
-    .bucket {
-      border: 2px dashed white;
-      min-height: 60px;
-      padding: 10px;
-      margin: 10px auto;
-      width: 80%;
-      color: white;
-    }
-    .player {
-      background: #333;
-      color: white;
-      margin: 4px;
-      padding: 6px 10px;
-      border-radius: 5px;
-      cursor: grab;
-      display: inline-block;
-      font-size: 12px;
-    }
-    button {
-      margin: 5px;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      font-weight: bold;
-      background-color: #ff9800;
-      color: white;
-      cursor: pointer;
-    }
+    body { font-family: Arial, sans-serif; background: #f7f7f7; padding: 20px; }
+    h1 { text-align: center; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+    th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
+    input, button { padding: 8px; margin: 5px; border-radius: 6px; border: 1px solid #ccc; }
+    button { cursor: pointer; }
+    .add-row { background: #e9ffe9; }
+    .save-btn { background: #007bff; color: white; }
+    .del-btn { background: #ff4444; color: white; }
   </style>
 </head>
 <body>
-  <h1>Softball Lineup Manager</h1>
+  <h1>Softball Lineup Editor</h1>
+  <table id="lineupTable">
+    <thead>
+      <tr><th>Name</th><th>Position</th><th>Field</th><th>Note</th><th>Actions</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
-  <div id="field">
-    <div class="position" id="p" style="top: 220px; left: 220px;">P</div>
-    <div class="position" id="c" style="top: 360px; left: 220px;">C</div>
-    <div class="position" id="1b" style="top: 260px; left: 380px;">1B</div>
-    <div class="position" id="2b" style="top: 160px; left: 320px;">2B</div>
-    <div class="position" id="ss" style="top: 160px; left: 120px;">SS</div>
-    <div class="position" id="3b" style="top: 260px; left: 60px;">3B</div>
-    <div class="position" id="lf" style="top: 40px; left: 60px;">LF</div>
-    <div class="position" id="cf" style="top: 20px; left: 220px;">CF</div>
-    <div class="position" id="rf" style="top: 40px; left: 380px;">RF</div>
-  </div>
-
-  <div class="bucket" id="roster"><b>Roster</b></div>
-  <div class="bucket" id="sub"><b>Sub for Inning</b></div>
-  <div class="bucket" id="outfield"><b>Outfield</b></div>
-
-  <button onclick="resetLineup()">Reset Lineup</button>
-  <button onclick="exportJSON()">Export Lineup JSON</button>
+  <h3>Add New Player</h3>
+  <input id="newName" placeholder="Name">
+  <input id="newPos" placeholder="Position">
+  <input id="newField" placeholder="Field">
+  <input id="newNote" placeholder="Note">
+  <button id="addBtn" class="save-btn">Add Player</button>
 
   <script>
-    const players = ["Corbin","Danielle","Marcus","Natalie","Russell","Vamsi","Brianna","Charles","Matt Johnson","Ellison","Lauren","Taylor"];
+    const apiURL = "https://script.google.com/macros/s/AKfycbwyy3XdSDYwo7m2-ix-BK33wovAz90kNFW-NHo12K4Nolnhg5yMEKTnNBEkkFyj9936/exec";
 
-    let lineup = {
-      P:null, C:null, "1B":null, "2B":null, "3B":null, SS:null,
-      LF:null, CF:null, RF:null,
-      Outfield:[], Sub:[], Roster:[...players]
-    };
-
-    const rosterDiv = document.getElementById("roster");
-    const outfieldDiv = document.getElementById("outfield");
-    const subDiv = document.getElementById("sub");
-
-    function renderBuckets() {
-      rosterDiv.innerHTML = "<b>Roster</b>";
-      lineup.Roster.forEach(p => rosterDiv.appendChild(createPlayerDiv(p)));
-
-      outfieldDiv.innerHTML = "<b>Outfield</b>";
-      lineup.Outfield.forEach(p => outfieldDiv.appendChild(createPlayerDiv(p)));
-
-      subDiv.innerHTML = "<b>Sub for Inning</b>";
-      lineup.Sub.forEach(p => subDiv.appendChild(createPlayerDiv(p)));
-    }
-
-    function createPlayerDiv(name){
-      const div = document.createElement("div");
-      div.className="player";
-      div.id="player-"+name.replace(/\s+/g,'');
-      div.innerText = name;
-      div.draggable=true;
-      div.addEventListener("dragstart", e=> e.dataTransfer.setData("text", div.id));
-      return div;
-    }
-
-    function renderPositions() {
-      for(const pos of ["P","C","1B","2B","3B","SS","LF","CF","RF"]){
-        const slot = document.getElementById(pos.toLowerCase());
-        slot.innerHTML = pos + (lineup[pos]? `<span class="player">${lineup[pos]}</span>` : "");
-      }
-    }
-
-    // Buckets and positions accept drop
-    const droppables = [...document.querySelectorAll(".bucket"), ...document.querySelectorAll(".position")];
-    droppables.forEach(el => {
-      el.addEventListener("dragover", e => e.preventDefault());
-      el.addEventListener("drop", e => {
-        e.preventDefault();
-        const playerId = e.dataTransfer.getData("text");
-        const player = document.getElementById(playerId);
-        const name = player.innerText;
-
-        // Remove player from current assignment
-        Object.keys(lineup).forEach(key=>{
-          if(Array.isArray(lineup[key])) lineup[key] = lineup[key].filter(p=>p!==name);
-          else if(lineup[key]===name) lineup[key]=null;
-        });
-
-        if(el.classList.contains("position")){
-          const posName = el.id.toUpperCase();
-          if(el.querySelector(".player")){
-            alert("Position already taken!");
-            return;
-          }
-          lineup[posName]=name;
-        } else if(el.id==="outfield") lineup.Outfield.push(name);
-        else if(el.id==="sub") lineup.Sub.push(name);
-        else if(el.id==="roster") lineup.Roster.push(name);
-
-        renderPositions();
-        renderBuckets();
+    async function loadPlayers() {
+      const res = await fetch(apiURL);
+      const data = await res.json();
+      const tbody = document.querySelector("#lineupTable tbody");
+      tbody.innerHTML = "";
+      data.forEach(player => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td><input value="${player.name}"></td>
+          <td><input value="${player.position}"></td>
+          <td><input value="${player.field}"></td>
+          <td><input value="${player.note || ''}"></td>
+          <td>
+            <button class="save-btn" onclick="updatePlayer(${player.id}, this)">Save</button>
+            <button class="del-btn" onclick="deletePlayer(${player.id})">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(row);
       });
-    });
+    }
 
-    function resetLineup(){
-      lineup = {
-        P:null, C:null, "1B":null, "2B":null, "3B":null, SS:null,
-        LF:null, CF:null, RF:null,
-        Outfield:[], Sub:[], Roster:[...players]
+    async function addPlayer() {
+      const body = {
+        action: "add",
+        name: newName.value,
+        position: newPos.value,
+        field: newField.value,
+        note: newNote.value
       };
-      renderPositions();
-      renderBuckets();
+      await fetch(apiURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      newName.value = newPos.value = newField.value = newNote.value = "";
+      loadPlayers();
     }
 
-    function exportJSON(){
-      const text = JSON.stringify(lineup, null, 2);
-      navigator.clipboard.writeText(text).then(()=>alert("✅ Lineup JSON copied! Paste into lineup.json on GitHub."));
+    async function updatePlayer(id, btn) {
+      const row = btn.closest("tr");
+      const inputs = row.querySelectorAll("input");
+      const body = {
+        action: "update",
+        id,
+        name: inputs[0].value,
+        position: inputs[1].value,
+        field: inputs[2].value,
+        note: inputs[3].value
+      };
+      await fetch(apiURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      loadPlayers();
     }
 
-    // Initial render
-    renderBuckets();
-    renderPositions();
+    async function deletePlayer(id) {
+      if (!confirm("Delete this player?")) return;
+      await fetch(apiURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", id })
+      });
+      loadPlayers();
+    }
+
+    document.getElementById("addBtn").addEventListener("click", addPlayer);
+    loadPlayers();
   </script>
 </body>
 </html>
