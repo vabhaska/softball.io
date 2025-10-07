@@ -2,13 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Softball Lineup Viewer</title>
+  <title>Softball Lineup Manager</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      padding: 20px;
-    }
+    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
     h1 { text-align: center; }
     .player {
       background: white;
@@ -17,41 +13,76 @@
       margin: 8px 0;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
+    form {
+      margin-top: 20px;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    input, button {
+      padding: 8px;
+      margin: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover { background: #0056b3; }
   </style>
 </head>
 <body>
   <h1>Softball Lineup</h1>
   <div id="lineup">Loading...</div>
 
-  <script>
-    const sheetID = "1-1UaDNlEwO8ut59fWtOCsdaaB6G6ohu1n1gZ5NMpy_o/edit?gid=0#gid=0";
-    const sheetURL = `https://docs.google.com/spreadsheets/d/${1-1UaDNlEwO8ut59fWtOCsdaaB6G6ohu1n1gZ5NMpy_o/edit?gid=0#gid=0}/gviz/tq?tqx=out:json`;
+  <form id="addForm">
+    <h3>Add Player</h3>
+    <input type="text" id="name" placeholder="Name" required>
+    <input type="text" id="position" placeholder="Position" required>
+    <input type="text" id="field" placeholder="Field">
+    <input type="text" id="note" placeholder="Note">
+    <button type="submit">Add</button>
+  </form>
 
-    fetch(sheetURL)
-      .then(res => res.text())
-      .then(text => {
-        // Google wraps the JSON, so we need to clean it up
-        const json = JSON.parse(text.substring(47).slice(0, -2));
-        const rows = json.table.rows.map(r => r.c.map(c => c ? c.v : ""));
-        
-        const lineupDiv = document.getElementById("lineup");
-        lineupDiv.innerHTML = "";
-        for (let i = 1; i < rows.length; i++) { // skip header
-          const [name, position, field, note] = rows[i];
-          lineupDiv.innerHTML += `
-            <div class="player">
-              <strong>${name}</strong><br>
-              Position: ${position}<br>
-              Field: ${field || ''}<br>
-              ${note ? `<em>${note}</em>` : ''}
-            </div>
-          `;
-        }
-      })
-      .catch(err => {
-        document.getElementById("lineup").textContent = "Error loading lineup.";
-        console.error(err);
+  <script>
+    const apiURL = "https://script.google.com/macros/s/AKfycbyko9EBjfQ6FL6kx0pCs2f8IfabjAYl2_p87nx7rODHQdlWrFx1k-goy6d2y1-pbJTM/exec";
+
+    async function loadLineup() {
+      const res = await fetch(apiURL);
+      const data = await res.json();
+      const lineupDiv = document.getElementById("lineup");
+      lineupDiv.innerHTML = data.map(p => `
+        <div class="player">
+          <strong>${p.name}</strong><br>
+          Position: ${p.position}<br>
+          Field: ${p.field || ''}<br>
+          ${p.note ? `<em>${p.note}</em>` : ''}
+        </div>
+      `).join('');
+    }
+
+    document.getElementById("addForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      const body = {
+        name: name.value,
+        position: position.value,
+        field: field.value,
+        note: note.value
+      };
+      await fetch(apiURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
       });
+      e.target.reset();
+      loadLineup(); // refresh
+    });
+
+    loadLineup();
   </script>
 </body>
 </html>
