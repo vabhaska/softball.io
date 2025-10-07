@@ -4,35 +4,140 @@
   <meta charset="UTF-8">
   <title>Softball Lineup Editor</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f7f7f7; padding: 20px; }
-    h1 { text-align: center; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
-    th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
-    input, button { padding: 8px; margin: 5px; border-radius: 6px; border: 1px solid #ccc; }
-    button { cursor: pointer; }
-    .add-row { background: #e9ffe9; }
-    .save-btn { background: #007bff; color: white; }
-    .del-btn { background: #ff4444; color: white; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f7ff;
+      padding: 20px;
+      text-align: center;
+    }
+
+    #login {
+      margin-top: 100px;
+    }
+
+    #editor {
+      display: none;
+    }
+
+    input, button {
+      padding: 8px;
+      margin: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      cursor: pointer;
+      background: #007bff;
+      color: white;
+    }
+
+    button:hover { background: #0056b3; }
+
+    #field {
+      position: relative;
+      margin: 40px auto;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle at center, #4caf50 60%, #3d8b40 100%);
+      border-radius: 50%;
+      border: 5px solid #fff;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    }
+
+    .base {
+      position: absolute;
+      background: white;
+      width: 40px;
+      height: 40px;
+      transform: rotate(45deg);
+      border: 2px solid black;
+    }
+
+    .player {
+      position: absolute;
+      width: 80px;
+      text-align: center;
+      font-weight: bold;
+      color: white;
+      text-shadow: 1px 1px 2px black;
+    }
+
+    #home { bottom: 60px; left: 230px; }
+    #first { right: 100px; bottom: 180px; }
+    #second { top: 200px; right: 230px; }
+    #third { left: 100px; bottom: 180px; }
+    #pitcher { top: 250px; left: 220px; }
+    #shortstop { top: 200px; left: 200px; }
+    #center { top: 50px; left: 210px; }
+    #left { top: 100px; left: 70px; }
+    #right { top: 100px; right: 70px; }
+
+    table {
+      width: 80%;
+      margin: 20px auto;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+    }
   </style>
 </head>
 <body>
-  <h1>Softball Lineup Editor</h1>
-  <table id="lineupTable">
-    <thead>
-      <tr><th>Name</th><th>Position</th><th>Field</th><th>Note</th><th>Actions</th></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
 
-  <h3>Add New Player</h3>
-  <input id="newName" placeholder="Name">
-  <input id="newPos" placeholder="Position">
-  <input id="newField" placeholder="Field">
-  <input id="newNote" placeholder="Note">
-  <button id="addBtn" class="save-btn">Add Player</button>
+  <div id="login">
+    <h2>Coach Login</h2>
+    <input type="password" id="passInput" placeholder="Enter password">
+    <button onclick="checkPassword()">Login</button>
+    <p id="loginMsg" style="color:red;"></p>
+  </div>
+
+  <div id="editor">
+    <h1>Softball Lineup Editor</h1>
+    <div id="field">
+      <div id="home" class="player"></div>
+      <div id="first" class="player"></div>
+      <div id="second" class="player"></div>
+      <div id="third" class="player"></div>
+      <div id="pitcher" class="player"></div>
+      <div id="shortstop" class="player"></div>
+      <div id="center" class="player"></div>
+      <div id="left" class="player"></div>
+      <div id="right" class="player"></div>
+    </div>
+
+    <table id="lineupTable">
+      <thead>
+        <tr><th>Name</th><th>Position</th><th>Field</th><th>Note</th><th>Actions</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <h3>Add New Player</h3>
+    <input id="newName" placeholder="Name">
+    <input id="newPos" placeholder="Position">
+    <input id="newField" placeholder="Field">
+    <input id="newNote" placeholder="Note">
+    <button id="addBtn">Add Player</button>
+  </div>
 
   <script>
     const apiURL = "https://script.google.com/macros/s/AKfycbwyy3XdSDYwo7m2-ix-BK33wovAz90kNFW-NHo12K4Nolnhg5yMEKTnNBEkkFyj9936/exec";
+    const PASSWORD = "NatP92"; // change this to your own password
+
+    function checkPassword() {
+      const entered = document.getElementById("passInput").value;
+      if (entered === PASSWORD) {
+        document.getElementById("login").style.display = "none";
+        document.getElementById("editor").style.display = "block";
+        loadPlayers();
+      } else {
+        document.getElementById("loginMsg").innerText = "Incorrect password.";
+      }
+    }
 
     async function loadPlayers() {
       const res = await fetch(apiURL);
@@ -47,11 +152,31 @@
           <td><input value="${player.field}"></td>
           <td><input value="${player.note || ''}"></td>
           <td>
-            <button class="save-btn" onclick="updatePlayer(${player.id}, this)">Save</button>
-            <button class="del-btn" onclick="deletePlayer(${player.id})">Delete</button>
+            <button onclick="updatePlayer(${player.id}, this)">Save</button>
+            <button onclick="deletePlayer(${player.id})">Delete</button>
           </td>
         `;
         tbody.appendChild(row);
+      });
+      renderField(data);
+    }
+
+    function renderField(players) {
+      const map = {
+        "Catcher": "home",
+        "First Base": "first",
+        "Second Base": "second",
+        "Third Base": "third",
+        "Pitcher": "pitcher",
+        "Shortstop": "shortstop",
+        "Center Field": "center",
+        "Left Field": "left",
+        "Right Field": "right"
+      };
+      document.querySelectorAll(".player").forEach(p => p.textContent = "");
+      players.forEach(p => {
+        const id = map[p.position];
+        if (id) document.getElementById(id).textContent = p.name;
       });
     }
 
@@ -63,11 +188,7 @@
         field: newField.value,
         note: newNote.value
       };
-      await fetch(apiURL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
+      await fetch(apiURL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       newName.value = newPos.value = newField.value = newNote.value = "";
       loadPlayers();
     }
@@ -83,26 +204,17 @@
         field: inputs[2].value,
         note: inputs[3].value
       };
-      await fetch(apiURL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
+      await fetch(apiURL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       loadPlayers();
     }
 
     async function deletePlayer(id) {
       if (!confirm("Delete this player?")) return;
-      await fetch(apiURL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "delete", id })
-      });
+      await fetch(apiURL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "delete", id }) });
       loadPlayers();
     }
 
     document.getElementById("addBtn").addEventListener("click", addPlayer);
-    loadPlayers();
   </script>
 </body>
 </html>
