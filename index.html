@@ -6,6 +6,10 @@
   <style>
     body { font-family: Arial, sans-serif; background: #f4f4f4; text-align: center; margin: 0; padding: 0; }
     h1 { background: #2c3e50; color: white; margin: 0; padding: 20px; }
+
+    #login { margin-top: 50px; }
+    #editor { display: none; }
+
     .field {
       position: relative;
       width: 500px;
@@ -15,6 +19,8 @@
       border-radius: 50%;
       box-shadow: inset 0 0 10px #333;
     }
+
+    /* Base positions */
     .base {
       width: 50px;
       height: 50px;
@@ -26,116 +32,139 @@
     .base.first { right: 70px; bottom: 150px; }
     .base.second { top: 50%; right: 210px; transform: translateY(-50%) rotate(45deg); }
     .base.third { left: 70px; bottom: 150px; }
+
+    /* Position labels */
+    .label {
+      position: absolute;
+      font-weight: bold;
+      color: white;
+      text-shadow: 1px 1px 2px black;
+      font-size: 12px;
+      text-align: center;
+    }
+    #labelC { bottom: 10px; left: 50%; transform: translateX(-50%); }
+    #label1B { right: 50px; bottom: 160px; }
+    #label2B { top: 50%; right: 230px; transform: translateY(-50%); }
+    #label3B { left: 50px; bottom: 160px; }
+    #labelP { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+    #labelSS { top: 50%; left: 200px; transform: translateY(-50%); }
+    #labelCF { top: 50px; left: 210px; }
+    #labelLF { top: 100px; left: 70px; }
+    #labelRF { top: 100px; right: 70px; }
+
     .player {
       position: absolute;
       transform: translate(-50%, -50%);
       background: #1976d2;
       color: white;
-      padding: 8px 12px;
+      padding: 6px 10px;
       border-radius: 20px;
-      cursor: pointer;
       font-size: 14px;
+      cursor: pointer;
     }
+
     input, button { margin: 5px; padding: 8px; border-radius: 6px; border: 1px solid #ccc; }
     button { cursor: pointer; background: #2c3e50; color: white; }
   </style>
 </head>
 <body>
-  <h1>Softball Lineup Editor</h1>
 
-  <div id="login">
-    <p>Enter password to edit lineup:</p>
-    <input type="password" id="pwInput" placeholder="Password">
-    <button onclick="checkPassword()">Login</button>
+<h1>Softball Lineup Editor</h1>
+
+<div id="login">
+  <p>Enter password to edit lineup:</p>
+  <input type="password" id="pwInput" placeholder="Password">
+  <button onclick="checkPassword()">Login</button>
+</div>
+
+<div id="editor">
+  <div class="field" id="field">
+    <!-- Bases -->
+    <div class="base home"></div>
+    <div class="base first"></div>
+    <div class="base second"></div>
+    <div class="base third"></div>
+    <!-- Position labels -->
+    <div id="labelC" class="label">C</div>
+    <div id="label1B" class="label">1B</div>
+    <div id="label2B" class="label">2B</div>
+    <div id="label3B" class="label">3B</div>
+    <div id="labelP" class="label">P</div>
+    <div id="labelSS" class="label">SS</div>
+    <div id="labelCF" class="label">CF</div>
+    <div id="labelLF" class="label">LF</div>
+    <div id="labelRF" class="label">RF</div>
   </div>
 
-  <div id="editor" style="display:none;">
-    <div class="field" id="field"></div>
-    <div>
-      <input id="name" placeholder="Player Name">
-      <input id="position" placeholder="Position">
-      <button onclick="addPlayer()">Add Player</button>
-    </div>
+  <div>
+    <input id="name" placeholder="Player Name">
+    <input id="position" placeholder="Position (e.g. 1B, SS)">
+    <button onclick="addPlayer()">Add Player</button>
   </div>
+</div>
 
-  <script>
-    const apiURL = "https://script.google.com/macros/s/AKfycbx8u8pUTWaeZn0HHfocuTE-9wMFOFCmCyXLklEdiOuMVLIwGfDa50SyM8Qr8UYF6NxL/exec";
-    const password = "softball123"; // must match Apps Script
+<script>
+  const apiURL = "https://script.google.com/macros/s/AKfycbx8u8pUTWaeZn0HHfocuTE-9wMFOFCmCyXLklEdiOuMVLIwGfDa50SyM8Qr8UYF6NxL/exec";
+  const password = "softball123"; // Must match Apps Script
 
-    let players = [];
+  let players = [];
 
-    function checkPassword() {
-      const pw = document.getElementById("pwInput").value;
-      if (pw === password) {
-        document.getElementById("login").style.display = "none";
-        document.getElementById("editor").style.display = "block";
-        loadPlayers();
-      } else {
-        alert("Incorrect password");
-      }
-    }
-
-    async function loadPlayers() {
-      const res = await fetch(apiURL);
-      players = await res.json();
-      renderField();
-    }
-
-    function renderField() {
-      const field = document.getElementById("field");
-      field.innerHTML = `
-        <div class="base home"></div>
-        <div class="base first"></div>
-        <div class="base second"></div>
-        <div class="base third"></div>
-      `;
-      players.forEach(p => {
-        const div = document.createElement("div");
-        div.className = "player";
-        div.textContent = p.name;
-        div.style.left = (p.x || 250) + "px";
-        div.style.top = (p.y || 250) + "px";
-        div.draggable = true;
-        div.ondragend = e => updatePosition(p.id, e.offsetX, e.offsetY);
-        field.appendChild(div);
-      });
-    }
-
-    async function addPlayer() {
-      const body = {
-        action: "add",
-        password,
-        name: document.getElementById("name").value,
-        position: document.getElementById("position").value,
-        x: 250,
-        y: 250
-      };
-      await fetch(apiURL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
+  function checkPassword() {
+    const pw = document.getElementById("pwInput").value;
+    if (pw === password) {
+      document.getElementById("login").style.display = "none";
+      document.getElementById("editor").style.display = "block";
       loadPlayers();
+    } else {
+      alert("Incorrect password");
     }
+  }
 
-    async function updatePosition(id, x, y) {
-      const player = players.find(p => p.id === id);
-      if (!player) return;
-      const body = {
-        action: "update",
-        password,
-        id,
-        name: player.name,
-        position: player.position,
-        x, y
-      };
-      await fetch(apiURL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
-      loadPlayers();
-    }
-  </script>
+  async function loadPlayers() {
+    const res = await fetch(apiURL);
+    players = await res.json();
+    renderField();
+  }
+
+  function renderField() {
+    const field = document.getElementById("field");
+    // Remove existing player elements
+    field.querySelectorAll(".player").forEach(p => p.remove());
+
+    const positionMap = {
+      "C": [250, 450],
+      "1B": [400, 340],
+      "2B": [450, 250],
+      "3B": [100, 340],
+      "P": [250, 250],
+      "SS": [200, 250],
+      "CF": [210, 50],
+      "LF": [70, 100],
+      "RF": [430, 100]
+    };
+
+    players.forEach(p => {
+      const div = document.createElement("div");
+      div.className = "player";
+      div.textContent = p.name;
+      const pos = positionMap[p.position] || [250, 250];
+      div.style.left = pos[0] + "px";
+      div.style.top = pos[1] + "px";
+      field.appendChild(div);
+    });
+  }
+
+  async function addPlayer() {
+    const body = {
+      action: "add",
+      password,
+      name: document.getElementById("name").value,
+      position: document.getElementById("position").value
+    };
+    await fetch(apiURL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    loadPlayers();
+  }
+</script>
+
 </body>
 </html>
