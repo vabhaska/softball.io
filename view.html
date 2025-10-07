@@ -6,56 +6,23 @@
   <style>
     body { font-family: Arial, sans-serif; background: #f4f4f4; text-align: center; margin:0; padding:0; }
     h1 { background: #2c3e50; color: white; margin:0; padding:20px; }
-
-    .field {
-      position: relative;
-      width: 500px;
-      height: 500px;
-      background: radial-gradient(circle at center, #a5d6a7 60%, #6abf69 100%);
-      margin: 30px auto;
-      border-radius: 50%;
-      box-shadow: inset 0 0 10px #333;
-    }
-
-    .base {
-      width: 50px;
-      height: 50px;
-      background: #fff;
-      position: absolute;
-      transform: rotate(45deg);
-    }
-    .base.home { bottom: 30px; left: 50%; transform: translateX(-50%) rotate(45deg); }
-    .base.first { right: 70px; bottom: 150px; }
-    .base.second { top: 50%; right: 230px; transform: translateY(-50%) rotate(45deg); }
-    .base.third { left: 70px; bottom: 150px; }
-
-    .label {
-      position: absolute;
-      font-weight: bold;
-      color: white;
-      text-shadow: 1px 1px 2px black;
-      font-size: 12px;
-      text-align: center;
-    }
-    #labelC { bottom: 10px; left: 50%; transform: translateX(-50%); }
-    #label1B { right: 50px; bottom: 160px; }
-    #label2B { top: 50%; right: 230px; transform: translateY(-50%); }
-    #label3B { left: 50px; bottom: 160px; }
-    #labelP { top: 50%; left: 50%; transform: translate(-50%, -50%); }
-    #labelSS { top: 50%; left: 200px; transform: translateY(-50%); }
-    #labelCF { top: 50px; left: 210px; }
-    #labelLF { top: 100px; left: 70px; }
-    #labelRF { top: 100px; right: 70px; }
-
-    .player {
-      position: absolute;
-      transform: translate(-50%, -50%);
-      background: #1976d2;
-      color: white;
-      padding: 6px 10px;
-      border-radius: 20px;
-      font-size: 14px;
-    }
+    .field { position: relative; width: 500px; height: 500px; background: radial-gradient(circle at center,#a5d6a7 60%,#6abf69 100%); margin:30px auto; border-radius:50%; box-shadow: inset 0 0 10px #333; }
+    .base { width:50px; height:50px; background:#fff; position:absolute; transform:rotate(45deg); }
+    .base.home { bottom:30px; left:50%; transform:translateX(-50%) rotate(45deg); }
+    .base.first { right:70px; bottom:150px; }
+    .base.second { top:50%; right:230px; transform:translateY(-50%) rotate(45deg); }
+    .base.third { left:70px; bottom:150px; }
+    .label { position:absolute; font-weight:bold; color:white; text-shadow:1px 1px 2px black; font-size:12px; text-align:center; }
+    #labelC { bottom:10px; left:50%; transform:translateX(-50%); }
+    #label1B { right:50px; bottom:160px; }
+    #label2B { top:50%; right:230px; transform:translateY(-50%); }
+    #label3B { left:50px; bottom:160px; }
+    #labelP { top:50%; left:50%; transform:translate(-50%,-50%); }
+    #labelSS { top:50%; left:200px; transform:translateY(-50%); }
+    #labelCF { top:50px; left:210px; }
+    #labelLF { top:100px; left:70px; }
+    #labelRF { top:100px; right:70px; }
+    .player { position:absolute; transform:translate(-50%,-50%); background:#1976d2; color:white; padding:6px 10px; border-radius:20px; font-size:14px; }
   </style>
 </head>
 <body>
@@ -63,13 +30,11 @@
 <h1>Softball Lineup Viewer</h1>
 
 <div class="field" id="field">
-  <!-- Bases -->
   <div class="base home"></div>
   <div class="base first"></div>
   <div class="base second"></div>
   <div class="base third"></div>
 
-  <!-- Position labels -->
   <div id="labelC" class="label">C</div>
   <div id="label1B" class="label">1B</div>
   <div id="label2B" class="label">2B</div>
@@ -82,50 +47,9 @@
 </div>
 
 <script>
-  const apiURL = "https://script.google.com/macros/s/AKfycbx8u8pUTWaeZn0HHfocuTE-9wMFOFCmCyXLklEdiOuMVLIwGfDa50SyM8Qr8UYF6NxL/exec";
+  const apiURL = "https://script.google.com/macros/s/AKfycbx8u8pUTWaeZn0HHfocuTE-9wMFOFCmCyXLklEdiOuMVLIwGfDa50SyM8Qr8UYF6NxL/exec?v=" + new Date().getTime();
 
   async function loadPlayers() {
     try {
       const res = await fetch(apiURL);
-      const players = await res.json();
-      renderField(players);
-    } catch (err) {
-      console.error("Error loading players:", err);
-    }
-  }
-
-  function renderField(players) {
-    const field = document.getElementById("field");
-    // Remove existing player elements
-    field.querySelectorAll(".player").forEach(p => p.remove());
-
-    // Map positions to coordinates
-    const positionMap = {
-      "C": [250, 450],
-      "1B": [400, 340],
-      "2B": [450, 250],
-      "3B": [100, 340],
-      "P": [250, 250],
-      "SS": [200, 250],
-      "CF": [210, 50],
-      "LF": [70, 100],
-      "RF": [430, 100]
-    };
-
-    players.forEach(p => {
-      const div = document.createElement("div");
-      div.className = "player";
-      div.textContent = p.name;
-      const pos = positionMap[p.position] || [250, 250];
-      div.style.left = pos[0] + "px";
-      div.style.top = pos[1] + "px";
-      field.appendChild(div);
-    });
-  }
-
-  loadPlayers();
-  setInterval(loadPlayers, 30000); // refresh every 30s
-</script>
-
-</body>
-</html>
+      const players
