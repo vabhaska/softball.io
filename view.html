@@ -2,91 +2,91 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Softball Field Viewer</title>
+  <title>Softball Lineup Viewer</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f2f7ff;
+      background: #f4f4f4;
       text-align: center;
-      padding: 20px;
+      margin: 0;
+      padding: 0;
     }
-    h1 { margin-bottom: 20px; }
+    h1 { background: #2c3e50; color: white; margin: 0; padding: 20px; }
 
-    #field {
+    .field {
       position: relative;
-      margin: 0 auto;
       width: 500px;
       height: 500px;
-      background: radial-gradient(circle at center, #4caf50 60%, #3d8b40 100%);
+      background: radial-gradient(circle at center, #a5d6a7 60%, #6abf69 100%);
+      margin: 30px auto;
       border-radius: 50%;
-      border: 5px solid #fff;
-      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      box-shadow: inset 0 0 10px #333;
     }
+
+    .base {
+      width: 50px;
+      height: 50px;
+      background: #fff;
+      position: absolute;
+      transform: rotate(45deg);
+    }
+
+    .base.home { bottom: 30px; left: 50%; transform: translateX(-50%) rotate(45deg); }
+    .base.first { right: 70px; bottom: 150px; }
+    .base.second { top: 50%; right: 210px; transform: translateY(-50%) rotate(45deg); }
+    .base.third { left: 70px; bottom: 150px; }
 
     .player {
       position: absolute;
-      width: 80px;
-      text-align: center;
-      font-weight: bold;
+      transform: translate(-50%, -50%);
+      background: #1976d2;
       color: white;
-      text-shadow: 1px 1px 2px black;
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 14px;
     }
-
-    #home { bottom: 60px; left: 230px; }
-    #first { right: 100px; bottom: 180px; }
-    #second { top: 200px; right: 230px; }
-    #third { left: 100px; bottom: 180px; }
-    #pitcher { top: 250px; left: 220px; }
-    #shortstop { top: 200px; left: 200px; }
-    #center { top: 50px; left: 210px; }
-    #left { top: 100px; left: 70px; }
-    #right { top: 100px; right: 70px; }
   </style>
 </head>
 <body>
-  <h1>Softball Lineup</h1>
-  <div id="field">
-    <div id="home" class="player"></div>
-    <div id="first" class="player"></div>
-    <div id="second" class="player"></div>
-    <div id="third" class="player"></div>
-    <div id="pitcher" class="player"></div>
-    <div id="shortstop" class="player"></div>
-    <div id="center" class="player"></div>
-    <div id="left" class="player"></div>
-    <div id="right" class="player"></div>
+  <h1>Softball Lineup Viewer</h1>
+
+  <div class="field" id="field">
+    <div class="base home"></div>
+    <div class="base first"></div>
+    <div class="base second"></div>
+    <div class="base third"></div>
   </div>
 
   <script>
-    const apiURL = "https://script.google.com/macros/s/AKfycbwyy3XdSDYwo7m2-ix-BK33wovAz90kNFW-NHo12K4Nolnhg5yMEKTnNBEkkFyj9936/exec";
+    const apiURL = "https://script.google.com/macros/s/AKfycbx8u8pUTWaeZn0HHfocuTE-9wMFOFCmCyXLklEdiOuMVLIwGfDa50SyM8Qr8UYF6NxL/exec"; // replace with your deployed Google Apps Script
 
     async function loadPlayers() {
-      const res = await fetch(apiURL);
-      const data = await res.json();
-      renderField(data);
+      try {
+        const res = await fetch(apiURL);
+        const players = await res.json();
+        renderField(players);
+      } catch (err) {
+        console.error("Error loading players:", err);
+      }
     }
 
     function renderField(players) {
-      const map = {
-        "Catcher": "home",
-        "First Base": "first",
-        "Second Base": "second",
-        "Third Base": "third",
-        "Pitcher": "pitcher",
-        "Shortstop": "shortstop",
-        "Center Field": "center",
-        "Left Field": "left",
-        "Right Field": "right"
-      };
-      document.querySelectorAll(".player").forEach(p => p.textContent = "");
+      const field = document.getElementById("field");
+      // clear existing players
+      field.querySelectorAll(".player").forEach(p => p.remove());
+
       players.forEach(p => {
-        const id = map[p.position];
-        if (id) document.getElementById(id).textContent = p.name;
+        const div = document.createElement("div");
+        div.className = "player";
+        div.textContent = p.name;
+        div.style.left = (p.x || 250) + "px";
+        div.style.top = (p.y || 250) + "px";
+        field.appendChild(div);
       });
     }
 
     loadPlayers();
-    setInterval(loadPlayers, 30000); // auto-refresh every 30s
+    setInterval(loadPlayers, 30000); // refresh every 30 seconds
   </script>
 </body>
 </html>
