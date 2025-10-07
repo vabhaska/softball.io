@@ -52,4 +52,34 @@
   async function loadPlayers() {
     try {
       const res = await fetch(apiURL);
-      const players
+      const players = await res.json();
+      renderField(players);
+    } catch(err){ console.error(err); }
+  }
+
+  function renderField(players){
+    const field = document.getElementById("field");
+    field.querySelectorAll(".player").forEach(p=>p.remove());
+
+    const positionMap = {
+      "C":[250,450],"1B":[400,340],"2B":[450,250],"3B":[100,340],
+      "P":[250,250],"SS":[200,250],"CF":[210,50],"LF":[70,100],"RF":[430,100]
+    };
+
+    players.forEach(p=>{
+      const div = document.createElement("div");
+      div.className = "player";
+      div.textContent = p.name;
+      const pos = [p.x||positionMap[p.position]?.[0]||250, p.y||positionMap[p.position]?.[1]||250];
+      div.style.left = pos[0]+"px";
+      div.style.top = pos[1]+"px";
+      field.appendChild(div);
+    });
+  }
+
+  loadPlayers();
+  setInterval(loadPlayers,30000);
+</script>
+
+</body>
+</html>
